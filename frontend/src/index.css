@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', sans-serif;
+  color: #34333A;
+  background: #FBF8F2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+@layer components {
+  .surface { @apply rounded-2xl border border-[#EEE7DD] bg-white shadow-soft; }
+  .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.18em] text-coral-600; }
+  .field { @apply w-full rounded-xl border border-[#E4DED5] bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-[#AAA39A] focus:border-coral-500 focus:ring-4 focus:ring-coral-100; }
+  .primary-button { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-coral-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_20px_rgba(238,118,89,0.22)] transition hover:-translate-y-0.5 hover:bg-coral-600 disabled:cursor-not-allowed disabled:opacity-50; }
+  .secondary-button { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-sage-300 bg-sage-50 px-5 py-3 text-sm font-bold text-sage-700 transition hover:bg-sage-100; }
+}
