@@ -8,14 +8,13 @@ import CatalogPage from './pages/CatalogPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import HistoryPage from './pages/HistoryPage'
 import NotFoundPage from './pages/NotFoundPage'
+import Home from './pages/Home'
 
 export default function App() {
   const { user } = useAuth()
-  const home = user?.rol === 'ADMINISTRADOR' ? '/admin' : '/catalogo'
-
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={user ? home : '/login'} replace />} />
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegisterPage />} />
       <Route element={<ProtectedRoute />}>
