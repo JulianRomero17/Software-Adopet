@@ -16,6 +16,9 @@ body { margin: 0; min-width: 320px; min-height: 100vh; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 
+/* La ilustración decorativa del gato debe conservarse completa. */
+img[src*="gato_1"] { object-fit: contain !important; }
+
 @layer components {
   .surface { @apply rounded-2xl border border-[#EEE7DD] bg-white shadow-soft; }
   .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.18em] text-coral-600; }

@@ -9,6 +9,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import HistoryPage from './pages/HistoryPage'
 import NotFoundPage from './pages/NotFoundPage'
 import Home from './pages/Home'
+import FavoritesPage from './pages/FavoritesPage'
 
 export default function App() {
   const { user } = useAuth()
@@ -21,6 +22,7 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="/catalogo" element={<CatalogPage />} />
           <Route path="/historial" element={<HistoryPage />} />
+          <Route path="/favoritos" element={<FavoritesPage />} />
           <Route path="/admin" element={<ProtectedRoute roles={['ADMINISTRADOR']} />}>
             <Route index element={<AdminDashboardPage />} />
           </Route>

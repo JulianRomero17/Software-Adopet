@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import { authApi, setApiToken } from '../services/api'
+import { DEMO_ACCOUNT, PROVISIONAL_MODE } from '../config'
 
 const AuthContext = createContext(null)
 
@@ -16,6 +17,18 @@ export function AuthProvider({ children }) {
   const user = session ? { correo: session.correo, rol: session.rol } : null
 
   async function login(credentials) {
+    if (PROVISIONAL_MODE) {
+      if (credentials.correo !== DEMO_ACCOUNT.correo || credentials.contrasena !== DEMO_ACCOUNT.contrasena) {
+        const error = new Error('Credenciales provisionales inválidas')
+        error.response = { data: { mensaje: 'Usa demo@adopet.local y adopet2026 para ingresar.' } }
+        throw error
+      }
+
+      const next = { token: 'provisional-session', correo: DEMO_ACCOUNT.correo, rol: DEMO_ACCOUNT.rol }
+      setSession(next)
+      return next
+    }
+
     const { data } = await authApi.login(credentials)
     const claims = decodeToken(data.token)
     const next = { token: data.token, correo: claims.sub || credentials.correo, rol: data.rol }
