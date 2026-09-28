@@ -19,6 +19,29 @@ button { cursor: pointer; }
 /* La ilustración decorativa del gato debe conservarse completa. */
 img[src*="gato_1"] { object-fit: contain !important; }
 
+/* Convierte el distintivo de la sección institucional en un corazón visual. */
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 {
+  width: 230px;
+  height: 190px;
+  padding: 58px 36px 30px !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  border: 0 !important;
+  background: #ef7659 !important;
+  box-shadow: none !important;
+  clip-path: path("M 115 184 C 98 168 28 122 16 72 C 5 28 49 8 77 31 C 96 46 106 63 115 73 C 124 63 134 46 153 31 C 181 8 225 28 214 72 C 202 122 132 168 115 184 Z");
+}
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2::before {
+  display: none;
+}
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 > * { opacity: 1; position: relative; z-index: 1; color: white !important; }
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 > p:first-child { font-size: 18px; line-height: 1.2; }
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 > p:last-child { font-size: 11px; line-height: 1.3; color: rgba(255,255,255,0.82) !important; }
+
 @layer components {
   .surface { @apply rounded-2xl border border-[#EEE7DD] bg-white shadow-soft; }
   .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.18em] text-coral-600; }
