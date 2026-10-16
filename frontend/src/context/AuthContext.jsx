@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import { authApi, setApiToken } from '../services/api'
-import { DEMO_ACCOUNT, PROVISIONAL_MODE } from '../config'
+import { DEMO_ACCOUNT, DEMO_ADMIN_ACCOUNT, PROVISIONAL_MODE } from '../config'
+import { findLocalUser, registerLocalUser } from '../services/localStore'
 
 const AuthContext = createContext(null)
 
@@ -14,23 +15,32 @@ function decodeToken(token) {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
-  const user = session ? { correo: session.correo, rol: session.rol } : null
+  const user = session ? Object.fromEntries(Object.entries(session).filter(([key]) => key !== 'token' && key !== 'contrasena')) : null
 
-  async function login(credentials) {
+  async function login(credentials, expectedRole) {
     if (PROVISIONAL_MODE) {
-      if (credentials.correo !== DEMO_ACCOUNT.correo || credentials.contrasena !== DEMO_ACCOUNT.contrasena) {
+      const account = credentials.correo === DEMO_ADMIN_ACCOUNT.correo
+        ? DEMO_ADMIN_ACCOUNT
+        : findLocalUser(credentials.correo)
+
+      if (!account || account.contrasena !== credentials.contrasena || account.rol !== expectedRole) {
         const error = new Error('Credenciales provisionales inválidas')
-        error.response = { data: { mensaje: 'Usa demo@adopet.local y adopet2026 para ingresar.' } }
+        error.response = { data: { mensaje: 'Verifica el correo, la contraseña y el tipo de acceso seleccionado.' } }
         throw error
       }
 
-      const next = { token: 'provisional-session', correo: DEMO_ACCOUNT.correo, rol: DEMO_ACCOUNT.rol }
+      const next = { ...account, token: 'provisional-session' }
       setSession(next)
       return next
     }
 
     const { data } = await authApi.login(credentials)
     const claims = decodeToken(data.token)
+    if (data.rol !== expectedRole) {
+      const error = new Error('El tipo de acceso no coincide con el rol de la cuenta')
+      error.response = { data: { mensaje: 'Esta cuenta no tiene permiso para el apartado seleccionado.' } }
+      throw error
+    }
     const next = { token: data.token, correo: claims.sub || credentials.correo, rol: data.rol }
     setApiToken(next.token)
     setSession(next)
@@ -38,6 +48,7 @@ export function AuthProvider({ children }) {
   }
 
   async function register(payload) {
+    if (PROVISIONAL_MODE) return registerLocalUser(payload)
     return authApi.register(payload)
   }
 

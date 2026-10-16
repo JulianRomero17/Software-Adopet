@@ -28,4 +28,8 @@ export const requestsApi = {
   history: () => api.get('/historial'),
 }
 
+export const usersApi = {
+  detail: (id) => api.get(`/usuarios/${id}`),
+}
+
 export default api
