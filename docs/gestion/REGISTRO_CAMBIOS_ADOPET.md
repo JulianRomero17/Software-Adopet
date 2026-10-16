@@ -204,6 +204,28 @@ Usar esta plantilla cuando el problema impida continuar:
 - Riesgos, pendientes o reversión necesaria: ninguna pendiente de código registrada para este cambio visual; confirmar visualmente en revisión de UI.
 - Entrega a la siguiente persona: No verificable con git log.
 
+### [2026-10-15 19:53:47] — Responsable: Julián
+
+- Estado: [~] Parcial
+- Fecha planificada: Por definir.
+- Fecha real: 2026-10-15 19:53:47 (fecha/hora del commit).
+- Dependencias: HU-02, HU-07, HU-08, HU-12 y HU-13.
+- Área: frontend
+- Historia o requisito: HU-02, HU-07, HU-08, HU-12, HU-13; consulta del resultado de adopción por el adoptante.
+- Tarea o problema: completar el acceso local de administrador y el flujo provisional de revisión de solicitudes.
+- Qué se hizo: se añadió acceso diferenciado para adoptante y administrador con cuentas demo; selector persistente de tema claro/oscuro; catálogo local compartido y persistencia de mascotas y solicitudes; formulario local con información adicional para evaluar al adoptante; revisión administrativa de solicitante y mascota con decisión y observaciones; y presentación del resultado, fecha y observaciones en "Mis solicitudes". La decisión local sincroniza la solicitud con el historial y, al aprobar, marca la mascota como adoptada.
+- Endpoints o pantallas involucrados: login, registro, catálogo, panel de administración y "Mis solicitudes"; en modo API, consulta del historial y detalles de mascota/usuario.
+- Archivos creados o modificados: `frontend/src/components/AppShell.jsx`, `frontend/src/components/ThemeToggle.jsx`, `frontend/src/config.js`, `frontend/src/context/AuthContext.jsx`, `frontend/src/context/ThemeContext.jsx`, `frontend/src/data/provisionalPets.js`, `frontend/src/index.css`, `frontend/src/main.jsx`, `frontend/src/pages/AdminDashboardPage.jsx`, `CatalogPage.jsx`, `HistoryPage.jsx`, `Home.jsx`, `LoginPage.jsx`, `RegisterPage.jsx`, `frontend/src/services/api.js` y `frontend/src/services/localStore.js`.
+- Configuración utilizada, sin secretos: `PROVISIONAL_MODE = true`; datos temporales en `localStorage`. Las respuestas extendidas del formulario de adopción aún no están modeladas en el backend.
+- Rama: `master` es la rama actual y contiene este commit; rama histórica al crear el commit: No verificable con git log.
+- Commit/hash: `0bebf3dae460a620799da136fcd0634d1b4fde7b`
+- Cómo se probó: compilación del frontend con `npm run build --prefix frontend`; recorrido local en navegador del registro/inicio de sesión, solicitud y revisión administrativa.
+- Resultado esperado: permitir probar localmente el recorrido de solicitud y mostrar al adoptante la decisión administrativa.
+- Resultado obtenido: la compilación pasó y el recorrido local se verificó. No se considera validada la integración completa contra API/PostgreSQL ni el envío de correo.
+- Evidencia: commit `0bebf3dae460a620799da136fcd0634d1b4fde7b`; ejecución satisfactoria de `npm run build --prefix frontend`; código en `frontend/src/pages/AdminDashboardPage.jsx`, `CatalogPage.jsx` y `HistoryPage.jsx`.
+- Riesgos, pendientes o reversión necesaria: sigue activo el modo provisional; el cuestionario adicional y sus respuestas son solo locales; falta probar con API/PostgreSQL, verificar autorización y aislamiento de las solicitudes por adoptante, y validar SMTP.
+- Entrega a la siguiente persona: completar y probar la integración real sin perder el flujo local como datos de muestra hasta cerrar la fase de conexión de base de datos.
+
 ---
 
 ## Seguimiento por persona

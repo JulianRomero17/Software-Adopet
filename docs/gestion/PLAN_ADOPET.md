@@ -61,13 +61,13 @@ El proyecto no se considera terminado si el frontend sigue en `PROVISIONAL_MODE 
 - [x] CRUD de mascotas, búsqueda y filtros (backend; evidencia de código y commit).
 - [x] Solicitudes con validación de disponibilidad y duplicados (backend; evidencia de código y commit).
 - [x] Decisión del administrador con cambio de mascota a ADOPTADA al aprobar (backend; evidencia de código y decisión confirmada en [Decisiones de interpretación](#decisiones-de-interpretacion)).
-- [~] Interfaz: landing, login, registro, catálogo, filtros, ficha, favoritos, página de solicitudes y panel admin básico. El modo provisional sigue activo; "Mis solicitudes" usa `/historial` en vez de `/solicitudes/mias` y varias vistas no consumen aún datos reales.
+- [~] Interfaz: landing, login, registro, catálogo, filtros, ficha, favoritos, página de solicitudes y panel admin básico. En modo provisional ya permite acceso separado para administrador, gestión local de solicitudes y visualización del resultado por el adoptante. `HistoryPage` consume `/historial` en modo API, enriquece cada solicitud con los datos de la mascota; la validación integral con API y PostgreSQL sigue pendiente.
 - [ ] Perfil del adoptante (HU-03).
 - [!] Recuperación de contraseña completa con correo (HU-17): endpoints parciales, envío de correo con `TODO` y SMTP sin validar.
 - [ ] Gestión completa de mascotas desde el panel admin: listar, editar y desactivar (HU-10, HU-11).
 - [~] Seguimiento de solicitudes para administrador y adoptante (HU-09, HU-14): servicio y lectura presentes; alta de eventos e interfaces pendientes.
 - [~] Notificaciones al adoptante (HU-18): servicio y llamada presentes; SMTP real y cobertura de cambios pendientes.
-- [~] Historial de adopciones para ambos roles (HU-15): endpoint backend presente; vista admin y estado Finalizada pendientes.
+- [~] Historial de adopciones para ambos roles (HU-15): endpoint backend presente y el adoptante puede consultar estado y observaciones en modo provisional; vista admin y estado Finalizada pendientes.
 - [ ] Gestión de usuarios para el administrador (HU-16).
 - [ ] Base de datos PostgreSQL conectada y `PROVISIONAL_MODE = false`.
 - [ ] Pruebas, evidencia y entrega final.
@@ -118,7 +118,7 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 ### HU-02 — Inicio de sesión y roles (Juan Esteban / Yuber)
 - [x] `POST /api/auth/login` con JWT y rol (Julián)
 - [x] `SecurityConfig`, `@PreAuthorize` y filtro JWT (Julián)
-- [~] Login, `AuthContext` y `ProtectedRoute` por rol (Julián): existen en código; el modo provisional permanece activo y la sesión no se restaura al recargar.
+- [~] Login, `AuthContext` y `ProtectedRoute` por rol (Julián): el login ofrece acceso separado para adoptante y administrador, credenciales demo y redirección del administrador a `/admin`; el modo provisional permanece activo, y la sesión no se restaura al recargar.
 - [ ] Persistir la sesión al recargar la página (Juan Esteban)
 - [ ] Manejar token expirado: volver al login con aviso (Juan Esteban)
 - [ ] Probar login real con adoptante y administrador (Julián, fase final)
@@ -181,19 +181,19 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 
 ### HU-08 — Consulta de solicitudes por el adoptante (Yuber / Juan Esteban)
 - [x] `GET /api/solicitudes/mias` y `GET /api/historial` (Julián)
-- [~] Página "Mis solicitudes": el backend expone `/solicitudes/mias`, pero `HistoryPage` consulta `requestsApi.history()` (`/historial`), que devuelve el historial; cambiar la integración para mostrar las solicitudes y estados requeridos (Juan Esteban / Yuber).
-- [ ] Completar en la interfaz el uso de `/solicitudes/mias`, nombre y foto de la mascota (Yuber / Juan Esteban).
+- [~] Página "Mis solicitudes": en modo provisional muestra claramente solicitud pendiente, aprobada o rechazada, mascota, fecha y observaciones. En modo API consulta `requestsApi.history()` (`/historial`) y obtiene el detalle de cada mascota; falta probar ambos flujos con backend y verificar aislamiento por adoptante (Juan Esteban / Yuber).
+- [~] La pantalla muestra nombre y foto cuando están disponibles en modo local o al cargar el detalle de la mascota desde la API; falta verificar la respuesta real y sus campos en una integración completa (Yuber / Juan Esteban).
 - [ ] Filtro por estado (Yuber)
 
 ### HU-12 — Panel de revisión de solicitudes (Yuber / Juan Esteban)
 - [x] `GET /api/solicitudes/pendientes` (Julián)
 - [~] Contadores y listado en el panel admin (Julián): existe el panel; falta comprobarlo con datos de la API y ambos roles.
-- [ ] Detalle de solicitud con datos del adoptante y de la mascota (Yuber)
+- [~] Detalle de solicitud con datos del adoptante y de la mascota: disponible en modo provisional y mediante llamadas de detalle a la API; las respuestas del cuestionario de adopción solo se conservan localmente y falta validar la integración real (Yuber).
 - [ ] Filtros por estado, fecha o adoptante (Yuber)
 
 ### HU-13 — Aprobación o rechazo (Yuber / Julián)
 - [~] `PATCH /api/solicitudes/{id}/decision`: aprobar/rechazar implementados; el endpoint llama al servicio de notificación, pero SMTP y el flujo completo no están verificados. El cambio a ADOPTADA al aprobar sigue la decisión confirmada RF-16/RN-06 (Julián).
-- [~] Diálogo de decisión con observaciones (Julián): interfaz existente; falta comprobar el flujo completo contra la API real.
+- [~] Diálogo de decisión con observaciones: el administrador puede aprobar o rechazar y guardar observaciones en modo provisional; el consumo del endpoint existe, pero falta probar el flujo completo contra la API real.
 - [ ] Marcar una solicitud como "En revisión" desde la interfaz (Yuber)
 - [ ] Marcar una aprobada como "Finalizada": servicio (Julián) e interfaz (Yuber)
 
@@ -248,7 +248,10 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 
 - [x] Favoritos en `localStorage` (Julián; alcance provisional/local verificado en código).
 - [x] Diseño visual: logo, paleta, `AppShell`, `Toast`, `StatusPill`, página 404 (Julián)
-- [x] Modo provisional con cuenta demo y catálogo de ejemplo (Julián; verificado en código; reemplazo por API sigue pendiente).
+- [x] Modo provisional con cuentas demo separadas para adoptante y administrador, catálogo y persistencia local de mascotas y solicitudes (Julián; verificado en código; reemplazo por API sigue pendiente).
+- [x] Selector de tema claro/oscuro persistente (Julián; verificado en código).
+- [~] Revisión local de solicitudes: muestra información disponible del adoptante, mascota y respuestas del formulario; permite registrar decisión y observaciones. La información del cuestionario y la persistencia local no sustituyen el contrato ni las pruebas con la API y PostgreSQL.
+- [~] Resultado de la solicitud para el adoptante: la pantalla muestra estado, mascota, fecha y observaciones en modo provisional; falta validación con datos reales y confirmar el aislamiento de datos por adoptante.
 - [x] `schema.sql` y `data.sql` para PostgreSQL (Julián)
 - [ ] (P1) Favoritos en el backend: tabla y endpoints (Julián), interfaz (Juan Esteban)
 
