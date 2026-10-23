@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', sans-serif;
+  color: #34333A;
+  background: #FBF8F2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+/* La ilustración decorativa del gato debe conservarse completa. */
+img[src*="gato_1"] { object-fit: contain !important; }
+
+/* Convierte el distintivo de la sección institucional en un corazón visual. */
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 {
+  width: 230px;
+  height: 190px;
+  padding: 58px 36px 30px !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  border: 0 !important;
+  background: #ef7659 !important;
+  box-shadow: none !important;
+  clip-path: path("M 115 184 C 98 168 28 122 16 72 C 5 28 49 8 77 31 C 96 46 106 63 115 73 C 124 63 134 46 153 31 C 181 8 225 28 214 72 C 202 122 132 168 115 184 Z");
+}
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2::before {
+  display: none;
+}
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 > * { opacity: 1; position: relative; z-index: 1; color: white !important; }
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 > p:first-child { font-size: 18px; line-height: 1.2; }
+.absolute.bottom-4.left-1\/2.-translate-x-1\/2 > p:last-child { font-size: 11px; line-height: 1.3; color: rgba(255,255,255,0.82) !important; }
+
+@layer components {
+  .surface { @apply rounded-2xl border border-[#EEE7DD] bg-white shadow-soft; }
+  .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.18em] text-coral-600; }
+  .field { @apply w-full rounded-xl border border-[#E4DED5] bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-[#AAA39A] focus:border-coral-500 focus:ring-4 focus:ring-coral-100; }
+  .primary-button { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-coral-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_20px_rgba(238,118,89,0.22)] transition hover:-translate-y-0.5 hover:bg-coral-600 disabled:cursor-not-allowed disabled:opacity-50; }
+  .secondary-button { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-sage-300 bg-sage-50 px-5 py-3 text-sm font-bold text-sage-700 transition hover:bg-sage-100; }
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html[data-theme='dark'] body,
+html[data-theme='dark'] .bg-cream,
+html[data-theme='dark'] [class*='bg-cream/'],
+html[data-theme='dark'] [class*='bg-[#FBF8F2]'],
+html[data-theme='dark'] [class*='bg-[#FFF6EF]'] {
+  background-color: #171a18;
+  color: #f3f1e9;
+}
+
+html[data-theme='dark'] .bg-white,
+html[data-theme='dark'] [class*='bg-white/'] {
+  background-color: #222723;
+}
+
+html[data-theme='dark'] .text-ink {
+  color: #f3f1e9;
+}
+
+html[data-theme='dark'] [class*='text-[#'] {
+  color: #b9c1b9;
+}
+
+html[data-theme='dark'] [class*='border-[#EEE7DD]'],
+html[data-theme='dark'] [class*='border-[#F1ECE5]'],
+html[data-theme='dark'] [class*='border-[#E4DED5]'] {
+  border-color: #39423b;
+}
+
+html[data-theme='dark'] .bg-sage-50,
+html[data-theme='dark'] .bg-sage-100,
+html[data-theme='dark'] [class*='bg-sage-50/'] {
+  background-color: #28342b;
+}
+
+html[data-theme='dark'] .text-sage-700 {
+  color: #b4d3b1;
+}
+
+html[data-theme='dark'] .bg-coral-50,
+html[data-theme='dark'] .bg-coral-100 {
+  background-color: #3b2824;
+}
+
+html[data-theme='dark'] .text-coral-700 {
+  color: #ffb39a;
+}
+
+html[data-theme='dark'] [class*='bg-[#F'],
+html[data-theme='dark'] [class*='bg-[#E'],
+html[data-theme='dark'] [class*='bg-[#D'] {
+  background-color: #282d29;
+}
+
+html[data-theme='dark'] .field {
+  background-color: #222723;
+  border-color: #465047;
+  color: #f3f1e9;
+}
+
+html[data-theme='dark'] .field::placeholder {
+  color: #899389;
+}
+
+html[data-theme='dark'] .secondary-button,
+html[data-theme='dark'] button[aria-pressed='false'] {
+  background-color: #28342b;
+  border-color: #465b48;
+  color: #c1d8bf;
+}
+
+html[data-theme='dark'] .shadow-soft,
+html[data-theme='dark'] .shadow-float {
+  --tw-shadow-color: rgb(0 0 0 / 30%);
+}
