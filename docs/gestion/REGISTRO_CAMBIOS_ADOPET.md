@@ -72,6 +72,28 @@ Usar esta plantilla cuando el problema impida continuar:
 
 <!-- Esta es la línea base de commits de JulianRomero17 que Git permite atribuir. El estado de la rama al crear cada commit no queda guardado en el objeto commit; master es la rama actual verificada y contiene estos commits. No se puede inferir más autoría o fecha que la indicada por git log. -->
 
+### [2026-10-27 12:54:34] — Responsable: Julián / Juan Esteban / Yuber (avance asistido; sin atribución individual)
+
+- Estado: [x] Hecho y verificado para implementación y pruebas locales; PostgreSQL no fue usado.
+- Fecha planificada: Por definir.
+- Fecha real: 2026-10-27 12:54:34.
+- Dependencias: Frontend y servicios base existentes; validación final de persistencia depende de PostgreSQL.
+- Área: backend / frontend / pruebas / documentación técnica.
+- Historia o requisito: HU-01, HU-05, HU-06, HU-10, HU-11 y QA de `MascotaService`.
+- Tarea o problema: Completar funcionalidades ejecutables antes de conectar PostgreSQL.
+- Qué se hizo: Se agregó visibilidad de todos los estados de mascotas para administradores conservando el catálogo de disponibles para adoptantes; se añadieron controles de edición/desactivación en el inventario (con confirmación), vista previa y validación del formulario, validaciones de registro, filtros seleccionables y limpieza correcta, y datos reales/fallback explícito de salud en el detalle. Se creó una prueba unitaria de listado completo. Se agregó restauración de sesión segura, sin persistir contraseña, y redirección con aviso al expirar el token.
+- Endpoints o pantallas involucrados: `GET /api/mascotas`, `PUT /api/mascotas/{id}`, `PATCH /api/mascotas/{id}/desactivar`, registro, login/sesión, catálogo, detalle y panel admin.
+- Archivos creados o modificados: `src/main/java/com/adopet/business/services/MascotaService.java`, `src/main/java/com/adopet/presentation/controllers/MascotaController.java`, `src/test/java/com/adopet/business/services/MascotaServiceTest.java`, `frontend/src/pages/RegisterPage.jsx`, `LoginPage.jsx`, `CatalogPage.jsx`, `AdminDashboardPage.jsx`, `frontend/src/components/PetDetailsModal.jsx`, `ProtectedRoute.jsx`, `frontend/src/context/AuthContext.jsx`, `frontend/src/services/api.js`, `frontend/dist/`, `docs/gestion/PLAN_ADOPET.md`.
+- Configuración utilizada, sin secretos: Build de Vite en `frontend/`; tests unitarios Maven dirigidos a las cuatro suites unitarias; no se inició PostgreSQL ni se ejecutó Testcontainers.
+- Rama: `master` (confirmada con `git branch --show-current`); el árbol contiene cambios locales no confirmados.
+- Commit/hash: Sin commit; HEAD base verificado `0d81d8a`.
+- Cómo se probó: `npm run build` (desde `frontend/`); `mvn -q "-Dtest=AuthServiceTest,SolicitudAdopcionServiceTest,UsuarioServiceTest,MascotaServiceTest" test`; `git diff --check`.
+- Resultado esperado: Build frontend válido; 20 pruebas unitarias completas y cambios de inventario/validación integrados sin conexión a PostgreSQL.
+- Resultado obtenido: Build Vite completado; las 20 pruebas unitarias pasaron; `git diff --check` sin errores. La prueba Testcontainers y cualquier validación de API/BD real continúan pendientes.
+- Evidencia: salida de `npm run build`; reportes Surefire de las cuatro suites ejecutadas; código y prueba unitaria en los archivos indicados.
+- Riesgos, pendientes o reversión necesaria: Validar consultas y cambios persistidos con PostgreSQL; ampliar pruebas de filtros/actualización/desactivación de mascotas; cambios del worktree aún no confirmados.
+- Entrega a la siguiente persona: Continuar perfiles/seguimiento/usuarios y luego conectar y probar PostgreSQL sin desactivar el modo provisional antes de validar el flujo.
+
 ### [2026-09-21 14:10:32] — Responsable: Julián
 
 - Estado: [~] Parcial

@@ -41,6 +41,19 @@ public class SolicitudAdopcion {
     @Column(length = 1000)
     private String observaciones;
 
+    private String tipoVivienda;
+
+    private String permisoMascotas;
+
+    @Column(length = 1000)
+    private String experiencia;
+
+    @Column(length = 1000)
+    private String tiempoDisponible;
+
+    @Column(length = 1000)
+    private String motivacion;
+
     private LocalDateTime fechaActualizacion;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

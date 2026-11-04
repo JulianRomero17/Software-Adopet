@@ -62,15 +62,23 @@ public class MascotaController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADOPTANTE', 'ADMINISTRADOR')")
     public ResponseEntity<List<MascotaResponseDTO>> listar(
+            Authentication authentication,
             @RequestParam(required = false) String especie,
             @RequestParam(required = false) String raza,
             @RequestParam(required = false) String sexo,
             @RequestParam(required = false) Integer edadMin,
             @RequestParam(required = false) Integer edadMax,
             @RequestParam(required = false) String tamano) {
-        List<Mascota> mascotas = parametrosVacios(especie, raza, sexo, edadMin, edadMax, tamano)
-                ? mascotaService.listarDisponibles()
-                : mascotaService.buscarYFiltrar(especie, raza, sexo, edadMin, edadMax, tamano);
+        boolean administrador = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMINISTRADOR"));
+        List<Mascota> mascotas;
+        if (administrador && parametrosVacios(especie, raza, sexo, edadMin, edadMax, tamano)) {
+            mascotas = mascotaService.listarTodas();
+        } else if (parametrosVacios(especie, raza, sexo, edadMin, edadMax, tamano)) {
+            mascotas = mascotaService.listarDisponibles();
+        } else {
+            mascotas = mascotaService.buscarYFiltrar(especie, raza, sexo, edadMin, edadMax, tamano);
+        }
         return ResponseEntity.ok(mascotas.stream().map(MascotaResponseDTO::desde).toList());
     }
 
@@ -102,6 +110,7 @@ public class MascotaController {
     private Mascota convertir(MascotaRequestDTO request) {
         Mascota mascota = new Mascota();
         mascota.setNombre(request.nombre());
+        mascota.setEdadTexto(request.edadTexto());
         mascota.setEspecie(request.especie());
         mascota.setRaza(request.raza());
         mascota.setSexo(request.sexo());
@@ -109,6 +118,8 @@ public class MascotaController {
         mascota.setTamano(request.tamano());
         mascota.setDescripcion(request.descripcion());
         mascota.setEstadoSalud(request.estadoSalud());
+        mascota.setVacunacion(request.vacunacion());
+        mascota.setEsterilizacion(request.esterilizacion());
         mascota.setImagenUrl(request.imagenUrl());
         return mascota;
     }

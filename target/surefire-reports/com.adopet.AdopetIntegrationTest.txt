@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: com.adopet.AdopetIntegrationTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.219 s <<< FAILURE! -- in com.adopet.AdopetIntegrationTest
-com.adopet.AdopetIntegrationTest -- Time elapsed: 1.219 s <<< ERROR!
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.625 s <<< FAILURE! -- in com.adopet.AdopetIntegrationTest
+com.adopet.AdopetIntegrationTest -- Time elapsed: 1.625 s <<< ERROR!
 java.lang.IllegalStateException: Could not find a valid Docker environment. Please see logs and check configuration
 	at org.testcontainers.dockerclient.DockerClientProviderStrategy.lambda$getFirstValidStrategy$7(DockerClientProviderStrategy.java:274)
 	at java.base/java.util.Optional.orElseThrow(Optional.java:403)

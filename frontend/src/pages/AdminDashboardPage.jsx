@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Check, ClipboardList, Mail, MapPin, PawPrint, Phone, Plus, Search, ShieldCheck, UserRound, X } from 'lucide-react'
+import { Check, ClipboardList, Mail, MapPin, PawPrint, Pencil, Phone, Plus, Search, ShieldCheck, UserRound, X } from 'lucide-react'
 import { petsApi, requestsApi, usersApi } from '../services/api'
-import { PROVISIONAL_MODE } from '../config'
-import provisionalPets from '../data/provisionalPets'
-import { decideLocalRequest, readPets, readRequests, savePets } from '../services/localStore'
 import StatusPill from '../components/StatusPill'
 import Toast from '../components/Toast'
 import logo from '../../images/Logo_Adopet.png'
 
 const EMPTY_PET = {
   nombre: '',
+  edadTexto: '',
   especie: 'PERRO',
   raza: '',
   sexo: 'MACHO',
@@ -17,6 +15,8 @@ const EMPTY_PET = {
   tamano: 'MEDIANO',
   descripcion: '',
   estadoSalud: 'Salud estable',
+  vacunacion: '',
+  esterilizacion: '',
   imagenUrl: '',
 }
 
@@ -29,16 +29,10 @@ export default function AdminDashboardPage() {
   const [showForm, setShowForm] = useState(false)
   const [reviewingId, setReviewingId] = useState(null)
   const [form, setForm] = useState(EMPTY_PET)
+  const [editingPet, setEditingPet] = useState(null)
 
   async function load() {
     try {
-      if (PROVISIONAL_MODE) {
-        const localPets = readPets(provisionalPets)
-        setPets(localPets)
-        setPending(readRequests().filter(request => ['PENDIENTE', 'EN_REVISION'].includes(request.estado)))
-        return
-      }
-
       const [requests, petsResponse] = await Promise.all([requestsApi.pending(), petsApi.list()])
       setPending(requests.data)
       setPets(petsResponse.data)
@@ -51,8 +45,7 @@ export default function AdminDashboardPage() {
 
   async function decide(status) {
     try {
-      if (PROVISIONAL_MODE) decideLocalRequest(decision.id, status, note)
-      else await requestsApi.decide(decision.id, { decision: status, observaciones: note })
+      await requestsApi.decide(decision.id, { decision: status, observaciones: note })
       setToast(status === 'APROBADA' ? 'Solicitud aprobada y mascota adoptada.' : 'Solicitud rechazada.')
       setDecision(null)
       setNote('')
@@ -65,17 +58,11 @@ export default function AdminDashboardPage() {
   async function reviewRequest(request) {
     setReviewingId(request.id)
     try {
-      if (PROVISIONAL_MODE) {
-        const applicant = request.adoptante
-        const pet = request.mascota || pets.find(item => item.id === request.mascotaId)
-        setDecision({ ...request, adoptante: applicant, mascota: pet })
-      } else {
-        const [petResponse, applicantResponse] = await Promise.all([
-          petsApi.detail(request.mascotaId),
-          usersApi.detail(request.adoptanteId),
-        ])
-        setDecision({ ...request, mascota: petResponse.data, adoptante: applicantResponse.data })
-      }
+      const [petResponse, applicantResponse] = await Promise.all([
+        petsApi.detail(request.mascotaId),
+        usersApi.detail(request.adoptanteId),
+      ])
+      setDecision({ ...request, mascota: petResponse.data, adoptante: applicantResponse.data })
       setNote('')
     } catch (err) {
       setToast(err.response?.data?.mensaje || err.message || 'No pudimos cargar los datos completos de la solicitud.')
@@ -84,18 +71,28 @@ export default function AdminDashboardPage() {
     }
   }
 
-  async function createPet(event) {
+  function editPet(pet) {
+    setEditingPet(pet)
+    setForm({ ...EMPTY_PET, ...pet, edad: pet.edad ?? 0 })
+    setShowForm(true)
+  }
+
+  async function savePet(event) {
     event.preventDefault()
-    const payload = { ...form, edad: Number(form.edad), estado: 'DISPONIBLE', edadTexto: `${form.edad} ${Number(form.edad) === 1 ? 'año' : 'años'}` }
+    const payload = {
+      ...form,
+      edad: Number(form.edad),
+      estado: editingPet?.estado || 'DISPONIBLE',
+      edadTexto: form.edadTexto || `${form.edad} ${Number(form.edad) === 1 ? 'año' : 'años'}`,
+    }
     try {
-      if (PROVISIONAL_MODE) {
-        const currentPets = readPets(provisionalPets)
-        const id = Math.max(0, ...currentPets.map(pet => Number(pet.id) || 0)) + 1
-        savePets([{ ...payload, id }, ...currentPets])
+      if (editingPet) {
+        await petsApi.update(editingPet.id, payload)
       } else {
         await petsApi.create(payload)
       }
-      setToast('Mascota registrada como disponible.')
+      setToast(editingPet ? 'Información de la mascota actualizada.' : 'Mascota registrada como disponible.')
+      setEditingPet(null)
       setForm(EMPTY_PET)
       setShowForm(false)
       await load()
@@ -104,11 +101,15 @@ export default function AdminDashboardPage() {
     }
   }
 
-  function toggleAvailability(pet) {
-    const estado = pet.estado === 'DISPONIBLE' ? 'NO_DISPONIBLE' : 'DISPONIBLE'
-    savePets(readPets(provisionalPets).map(item => item.id === pet.id ? { ...item, estado } : item))
-    setPets(readPets(provisionalPets))
-    setToast(estado === 'DISPONIBLE' ? `${pet.nombre} vuelve al catálogo.` : `${pet.nombre} ya no aparece en el catálogo.`)
+  async function deactivatePet(pet) {
+    if (!window.confirm(`¿Desactivar a ${pet.nombre}? Ya no aparecerá en el catálogo.`)) return
+    try {
+      await petsApi.deactivate(pet.id)
+      setToast(`${pet.nombre} fue desactivada del catálogo.`)
+      await load()
+    } catch (err) {
+      setToast(err.response?.data?.mensaje || err.message || 'No pudimos desactivar la mascota.')
+    }
   }
 
   const availableCount = pets.filter(pet => pet.estado === 'DISPONIBLE').length
@@ -116,7 +117,7 @@ export default function AdminDashboardPage() {
   return <div>
     <header className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
       <div><p className="eyebrow">Panel de gestión</p><h1 className="mt-2 font-display text-4xl font-bold text-ink">Hola, equipo Adopet.</h1><p className="mt-3 text-[#81786F]">Administra las mascotas y acompaña cada solicitud de adopción.</p></div>
-      <button onClick={() => setShowForm(!showForm)} className="primary-button"><Plus size={18} /> Registrar mascota</button>
+      <button onClick={() => { setEditingPet(null); setForm(EMPTY_PET); setShowForm(!showForm) }} className="primary-button"><Plus size={18} /> Registrar mascota</button>
     </header>
 
     <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -125,20 +126,25 @@ export default function AdminDashboardPage() {
       <div className="surface border-l-4 border-l-sunshine p-5"><p className="text-sm font-semibold text-[#81786F]">Cuidado primero</p><div className="mt-3 flex items-center gap-2 text-sm font-bold text-sage-700"><img src={logo} alt="Adopet" className="h-6 w-6 object-contain" /> Cada caso es único</div></div>
     </div>
 
-    {showForm && <form onSubmit={createPet} className="surface mt-6 p-6">
-      <div className="flex items-center justify-between"><div><p className="eyebrow">Catálogo</p><h2 className="mt-1 font-display text-2xl font-bold">Registrar mascota</h2></div><button type="button" onClick={() => setShowForm(false)} className="rounded-lg p-2 text-[#8A8178]" aria-label="Cerrar formulario"><X size={18} /></button></div>
+    {showForm && <form onSubmit={savePet} className="surface mt-6 p-6">
+      <div className="flex items-center justify-between"><div><p className="eyebrow">Catálogo</p><h2 className="mt-1 font-display text-2xl font-bold">{editingPet ? `Editar a ${editingPet.nombre}` : 'Registrar mascota'}</h2></div><button type="button" onClick={() => { setShowForm(false); setEditingPet(null); setForm(EMPTY_PET) }} className="rounded-lg p-2 text-[#8A8178]" aria-label="Cerrar formulario"><X size={18} /></button></div>
+      <p className="mt-3 rounded-xl bg-sage-50 px-4 py-3 text-sm text-sage-700">Estado {editingPet ? 'actual' : 'inicial'}: <strong>{editingPet?.estado || 'DISPONIBLE'}</strong>. Las mascotas nuevas se publican disponibles.</p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Nombre</span><input className="field" required value={form.nombre} onChange={event => setForm({ ...form, nombre: event.target.value })} /></label>
         <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Especie</span><select className="field" value={form.especie} onChange={event => setForm({ ...form, especie: event.target.value })}><option value="PERRO">Perro</option><option value="GATO">Gato</option><option value="OTRO">Otro</option></select></label>
         <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Raza</span><input className="field" value={form.raza} onChange={event => setForm({ ...form, raza: event.target.value })} placeholder="Sin raza definida" /></label>
         <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Sexo</span><select className="field" value={form.sexo} onChange={event => setForm({ ...form, sexo: event.target.value })}><option value="MACHO">Macho</option><option value="HEMBRA">Hembra</option></select></label>
         <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Edad (años)</span><input className="field" type="number" min="0" required value={form.edad} onChange={event => setForm({ ...form, edad: event.target.value })} /></label>
+        <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Edad para mostrar</span><input className="field" value={form.edadTexto} onChange={event => setForm({ ...form, edadTexto: event.target.value })} placeholder="Ej. 4 meses" /></label>
         <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Tamaño</span><select className="field" value={form.tamano} onChange={event => setForm({ ...form, tamano: event.target.value })}><option value="PEQUENO">Pequeño</option><option value="MEDIANO">Mediano</option><option value="GRANDE">Grande</option></select></label>
-        <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Estado de salud</span><input className="field" value={form.estadoSalud} onChange={event => setForm({ ...form, estadoSalud: event.target.value })} /></label>
+        <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Estado de salud</span><input className="field" required value={form.estadoSalud} onChange={event => setForm({ ...form, estadoSalud: event.target.value })} /></label>
+        <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Vacunación</span><input className="field" value={form.vacunacion} onChange={event => setForm({ ...form, vacunacion: event.target.value })} /></label>
+        <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Esterilización</span><input className="field" value={form.esterilizacion} onChange={event => setForm({ ...form, esterilizacion: event.target.value })} /></label>
         <label><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">URL de imagen</span><input className="field" type="url" value={form.imagenUrl} onChange={event => setForm({ ...form, imagenUrl: event.target.value })} placeholder="https://..." /></label>
         <label className="sm:col-span-2 lg:col-span-3"><span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#81786F]">Descripción</span><textarea className="field min-h-24" value={form.descripcion} onChange={event => setForm({ ...form, descripcion: event.target.value })} /></label>
       </div>
-      <button className="primary-button mt-5"><Plus size={17} /> Guardar mascota</button>
+      {form.imagenUrl && <div className="mt-5"><p className="mb-2 text-xs font-bold uppercase tracking-wider text-[#81786F]">Vista previa</p><img src={form.imagenUrl} alt={`Vista previa de ${form.nombre || 'la mascota'}`} className="h-48 w-48 rounded-2xl object-cover" /></div>}
+      <button className="primary-button mt-5">{editingPet ? <><Check size={17} /> Guardar cambios</> : <><Plus size={17} /> Guardar mascota</>}</button>
     </form>}
 
     <section className="surface mt-8 overflow-hidden">
@@ -148,7 +154,7 @@ export default function AdminDashboardPage() {
 
     <section className="surface mt-8 overflow-hidden">
       <div className="flex items-center justify-between border-b border-[#EEE7DD] px-6 py-5"><div><h2 className="font-display text-2xl font-bold">Mascotas registradas</h2><p className="mt-1 text-sm text-[#9A9187]">Controla qué mascotas aparecen en el catálogo.</p></div><PawPrint className="text-sage-600" /></div>
-      <div className="divide-y divide-[#F1ECE5]">{pets.map(pet => <div key={pet.id} className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-4"><div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-sage-50">{pet.imagenUrl ? <img src={pet.imagenUrl} alt="" className="h-full w-full object-cover" /> : <PawPrint size={20} className="text-sage-600" />}</div><div><p className="font-bold text-ink">{pet.nombre}</p><p className="mt-1 text-xs text-[#81786F]">{pet.especie} · {pet.raza || 'Sin raza'} · {pet.edadTexto || `${pet.edad} años`}</p></div></div><div className="flex items-center gap-3"><StatusPill status={pet.estado} />{PROVISIONAL_MODE && pet.estado !== 'ADOPTADA' && <button type="button" onClick={() => toggleAvailability(pet)} className="text-xs font-bold text-sage-700 hover:text-sage-900">{pet.estado === 'DISPONIBLE' ? 'Ocultar' : 'Publicar'}</button>}</div></div>)}</div>
+      <div className="divide-y divide-[#F1ECE5]">{pets.map(pet => <div key={pet.id} className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-4"><div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-sage-50">{pet.imagenUrl ? <img src={pet.imagenUrl} alt="" className="h-full w-full object-cover" /> : <PawPrint size={20} className="text-sage-600" />}</div><div><p className="font-bold text-ink">{pet.nombre}</p><p className="mt-1 text-xs text-[#81786F]">{pet.especie} · {pet.raza || 'Sin raza'} · {pet.edadTexto || `${pet.edad} años`}</p></div></div><div className="flex flex-wrap items-center gap-3"><StatusPill status={pet.estado} /><button type="button" onClick={() => editPet(pet)} className="inline-flex items-center gap-1 text-xs font-bold text-sage-700 hover:text-sage-900"><Pencil size={14} /> Editar</button>{pet.estado !== 'ADOPTADA' && pet.estado !== 'NO_DISPONIBLE' && <button type="button" onClick={() => deactivatePet(pet)} className="text-xs font-bold text-coral-700 hover:text-coral-900">Desactivar</button>}</div></div>)}</div>
     </section>
 
     {decision && <div className="fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="request-title"><div className="surface my-auto max-h-[94vh] w-full max-w-5xl overflow-y-auto p-5 sm:p-8">

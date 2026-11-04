@@ -8,7 +8,7 @@ export default function PetCard({ pet, onRequest, onViewDetails, requested, favo
       <div className="relative aspect-[4/3] overflow-hidden bg-sage-100">
         {pet.imagenUrl ? <img src={pet.imagenUrl} alt={pet.nombre} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-sage-50"><img src={logo} alt="Adopet" className="h-24 w-24 object-contain opacity-50" /></div>}
         <div className="absolute left-4 top-4"><StatusPill status={pet.estado} /></div>
-        <button type="button" onClick={() => onToggleFavorite?.(pet)} className={`absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white ${favorite ? 'text-coral-600' : 'text-coral-500'}`} title={favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}><Heart size={17} fill={favorite ? 'currentColor' : 'none'} /></button>
+        {onToggleFavorite && <button type="button" onClick={() => onToggleFavorite(pet)} className={`absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white ${favorite ? 'text-coral-600' : 'text-coral-500'}`} title={favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}><Heart size={17} fill={favorite ? 'currentColor' : 'none'} /></button>}
       </div>
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">

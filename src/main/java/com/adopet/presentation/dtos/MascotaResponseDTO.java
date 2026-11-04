@@ -6,6 +6,7 @@ import com.adopet.business.models.Mascota;
 public record MascotaResponseDTO(
         Long id,
         String nombre,
+        String edadTexto,
         String especie,
         String raza,
         String sexo,
@@ -13,6 +14,8 @@ public record MascotaResponseDTO(
         String tamano,
         String descripcion,
         String estadoSalud,
+        String vacunacion,
+        String esterilizacion,
         String imagenUrl,
         EstadoMascota estado) {
 
@@ -20,6 +23,7 @@ public record MascotaResponseDTO(
         return new MascotaResponseDTO(
                 mascota.getId(),
                 mascota.getNombre(),
+                mascota.getEdadTexto(),
                 mascota.getEspecie(),
                 mascota.getRaza(),
                 mascota.getSexo(),
@@ -27,6 +31,8 @@ public record MascotaResponseDTO(
                 mascota.getTamano(),
                 mascota.getDescripcion(),
                 mascota.getEstadoSalud(),
+                mascota.getVacunacion(),
+                mascota.getEsterilizacion(),
                 mascota.getImagenUrl(),
                 mascota.getEstado());
     }

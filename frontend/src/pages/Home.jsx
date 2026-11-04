@@ -13,10 +13,10 @@ import catOne from '../../images/GatosAdopcion/GatoA1.jpg'
 import catTwo from '../../images/GatosAdopcion/GatoA2.jpg'
 
 const mascotasDestacadas = [
-  { id: 1, nombre: 'Bruno', especie: 'Perro', raza: 'Golden retriever', imagen: dogOne },
-  { id: 2, nombre: 'Michi', especie: 'Gato', raza: 'Criollo', imagen: catOne },
-  { id: 3, nombre: 'Luna', especie: 'Perra', raza: 'Compañera fiel', imagen: dogTwo },
-  { id: 4, nombre: 'Simba', especie: 'Gato', raza: 'Curioso y tierno', imagen: catTwo },
+  { id: 1, nombre: 'Bruno', especie: 'Perro', raza: 'Mestizo', imagen: dogOne },
+  { id: 2, nombre: 'Michi', especie: 'Gato', raza: 'Doméstico de pelo corto', imagen: catOne },
+  { id: 3, nombre: 'Luna', especie: 'Perro', raza: 'Maltés mestizo', imagen: dogTwo },
+  { id: 4, nombre: 'Simba', especie: 'Gato', raza: 'Doméstico de pelo corto', imagen: catTwo },
 ]
 
 const pasos = [
@@ -28,14 +28,14 @@ const pasos = [
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
 
-  return <div className="min-h-screen overflow-hidden bg-cream text-ink">
+  return <div className="home-page min-h-screen overflow-hidden bg-cream text-ink">
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-[#EEE7DD]/80 bg-cream/90 backdrop-blur-md">
       <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-12">
         <Link to="/" className="flex items-center gap-0" onClick={() => setMenuOpen(false)}><img src={logo} alt="Adopet" className="relative -top-1 -mr-2 h-14 w-14 object-contain" /><span className="font-display text-2xl font-bold leading-none">adopet<span className="text-coral-500">.</span></span></Link>
-        <div className="hidden items-center gap-6 md:flex"><a href="#como-funciona" className="text-sm font-semibold text-[#746C63] transition hover:text-coral-600">Cómo funciona</a><a href="#nosotros" className="text-sm font-semibold text-[#746C63] transition hover:text-coral-600">Quiénes somos</a><a href="#destacadas" className="text-sm font-semibold text-[#746C63] transition hover:text-coral-600">Mascotas</a><Link to="/login" className="text-sm font-semibold text-[#746C63] transition hover:text-coral-600">Iniciar sesión</Link><ThemeToggle /><Link to="/registro" className="primary-button px-4 py-2.5">Registrarse <ArrowRight size={15} /></Link></div>
+        <div className="hidden items-center gap-5 md:flex"><a href="#como-funciona" className="text-sm font-semibold text-[#746C63] transition hover:text-coral-600">Cómo funciona</a><a href="#nosotros" className="text-sm font-semibold text-[#746C63] transition hover:text-coral-600">Quiénes somos</a><a href="#destacadas" className="text-sm font-semibold text-[#746C63] transition hover:text-coral-600">Mascotas</a><ThemeToggle /><div className="flex items-center gap-2"><Link to="/login" className="secondary-button px-4 py-2.5">Iniciar sesión</Link><Link to="/registro" className="primary-button px-4 py-2.5">Registrarse <ArrowRight size={15} /></Link></div></div>
         <div className="flex items-center gap-2 md:hidden"><ThemeToggle /><button type="button" className="rounded-xl p-2 text-ink" onClick={() => setMenuOpen(!menuOpen)} title="Abrir menú">{menuOpen ? <X size={23} /> : <Menu size={23} />}</button></div>
       </div>
-      {menuOpen && <div className="border-t border-[#EEE7DD] bg-cream px-5 py-5 md:hidden"><div className="mx-auto flex max-w-7xl flex-col gap-2"><a href="#como-funciona" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 text-sm font-semibold text-[#746C63] hover:bg-white">Cómo funciona</a><a href="#nosotros" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 text-sm font-semibold text-[#746C63] hover:bg-white">Quiénes somos</a><a href="#destacadas" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 text-sm font-semibold text-[#746C63] hover:bg-white">Mascotas</a><Link to="/login" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 text-sm font-semibold text-[#746C63] hover:bg-white">Iniciar sesión</Link><Link to="/registro" onClick={() => setMenuOpen(false)} className="primary-button mt-2">Registrarse <ArrowRight size={15} /></Link></div></div>}
+      {menuOpen && <div className="border-t border-[#EEE7DD] bg-cream px-5 py-5 md:hidden"><div className="mx-auto flex max-w-7xl flex-col gap-2"><a href="#como-funciona" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 text-sm font-semibold text-[#746C63] hover:bg-white">Cómo funciona</a><a href="#nosotros" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 text-sm font-semibold text-[#746C63] hover:bg-white">Quiénes somos</a><a href="#destacadas" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 text-sm font-semibold text-[#746C63] hover:bg-white">Mascotas</a><div className="mt-2 grid grid-cols-2 gap-2"><Link to="/login" onClick={() => setMenuOpen(false)} className="secondary-button px-3">Iniciar sesión</Link><Link to="/registro" onClick={() => setMenuOpen(false)} className="primary-button px-3">Registrarse <ArrowRight size={15} /></Link></div></div></div>}
     </nav>
 
     <main>

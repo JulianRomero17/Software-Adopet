@@ -1,9 +1,8 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { authApi, setApiToken } from '../services/api'
-import { DEMO_ACCOUNT, DEMO_ADMIN_ACCOUNT, PROVISIONAL_MODE } from '../config'
-import { findLocalUser, registerLocalUser } from '../services/localStore'
 
 const AuthContext = createContext(null)
+const SESSION_STORAGE_KEY = 'adopet_session'
 
 function decodeToken(token) {
   try {
@@ -13,27 +12,52 @@ function decodeToken(token) {
   }
 }
 
-export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null)
-  const user = session ? Object.fromEntries(Object.entries(session).filter(([key]) => key !== 'token' && key !== 'contrasena')) : null
+function readStoredSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || 'null')
+    if (!session?.token) return { session: null, expired: false }
 
-  async function login(credentials, expectedRole) {
-    if (PROVISIONAL_MODE) {
-      const account = credentials.correo === DEMO_ADMIN_ACCOUNT.correo
-        ? DEMO_ADMIN_ACCOUNT
-        : findLocalUser(credentials.correo)
-
-      if (!account || account.contrasena !== credentials.contrasena || account.rol !== expectedRole) {
-        const error = new Error('Credenciales provisionales inválidas')
-        error.response = { data: { mensaje: 'Verifica el correo, la contraseña y el tipo de acceso seleccionado.' } }
-        throw error
-      }
-
-      const next = { ...account, token: 'provisional-session' }
-      setSession(next)
-      return next
+    const { exp } = decodeToken(session.token)
+    if (session.token === 'provisional-session' || typeof exp !== 'number' || exp * 1000 <= Date.now()) {
+      localStorage.removeItem(SESSION_STORAGE_KEY)
+      return { session: null, expired: true }
     }
 
+    setApiToken(session.token)
+    return { session, expired: false }
+  } catch {
+    localStorage.removeItem(SESSION_STORAGE_KEY)
+    return { session: null, expired: true }
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [initialSession] = useState(readStoredSession)
+  const [session, setSession] = useState(initialSession.session)
+  const [sessionExpired, setSessionExpired] = useState(initialSession.expired)
+  const user = session ? Object.fromEntries(Object.entries(session).filter(([key]) => key !== 'token' && key !== 'contrasena')) : null
+
+  useEffect(() => {
+    if (!session) {
+      localStorage.removeItem(SESSION_STORAGE_KEY)
+      return
+    }
+    const { contrasena, ...safeSession } = session
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(safeSession))
+  }, [session])
+
+  useEffect(() => {
+    function expireSession() {
+      setApiToken(null)
+      setSession(null)
+      setSessionExpired(true)
+    }
+    window.addEventListener('adopet:session-expired', expireSession)
+    return () => window.removeEventListener('adopet:session-expired', expireSession)
+  }, [])
+
+  async function login(credentials, expectedRole) {
+    setSessionExpired(false)
     const { data } = await authApi.login(credentials)
     const claims = decodeToken(data.token)
     if (data.rol !== expectedRole) {
@@ -48,16 +72,16 @@ export function AuthProvider({ children }) {
   }
 
   async function register(payload) {
-    if (PROVISIONAL_MODE) return registerLocalUser(payload)
     return authApi.register(payload)
   }
 
   function logout() {
     setApiToken(null)
     setSession(null)
+    setSessionExpired(false)
   }
 
-  const value = useMemo(() => ({ session, user, login, register, logout }), [session, user])
+  const value = useMemo(() => ({ session, user, login, register, logout, sessionExpired }), [session, user, sessionExpired])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

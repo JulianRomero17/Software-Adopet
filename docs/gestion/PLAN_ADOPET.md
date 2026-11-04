@@ -64,7 +64,7 @@ El proyecto no se considera terminado si el frontend sigue en `PROVISIONAL_MODE 
 - [~] Interfaz: landing, login, registro, catálogo, filtros, ficha, favoritos, página de solicitudes y panel admin básico. En modo provisional ya permite acceso separado para administrador, gestión local de solicitudes y visualización del resultado por el adoptante. `HistoryPage` consume `/historial` en modo API, enriquece cada solicitud con los datos de la mascota; la validación integral con API y PostgreSQL sigue pendiente.
 - [ ] Perfil del adoptante (HU-03).
 - [!] Recuperación de contraseña completa con correo (HU-17): endpoints parciales, envío de correo con `TODO` y SMTP sin validar.
-- [ ] Gestión completa de mascotas desde el panel admin: listar, editar y desactivar (HU-10, HU-11).
+- [x] Gestión de mascotas desde el panel admin: listar por estado, editar y desactivar con confirmación (HU-10, HU-11); conexión y persistencia real por PostgreSQL pendientes.
 - [~] Seguimiento de solicitudes para administrador y adoptante (HU-09, HU-14): servicio y lectura presentes; alta de eventos e interfaces pendientes.
 - [~] Notificaciones al adoptante (HU-18): servicio y llamada presentes; SMTP real y cobertura de cambios pendientes.
 - [~] Historial de adopciones para ambos roles (HU-15): endpoint backend presente y el adoptante puede consultar estado y observaciones en modo provisional; vista admin y estado Finalizada pendientes.
@@ -112,15 +112,15 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 ### HU-01 — Registro de adoptante (Julián / Yuber)
 - [x] `POST /api/auth/registro` con correo único y contraseña BCrypt (Julián)
 - [x] Pantalla de registro conectada a la API (Julián)
-- [ ] Validaciones de formulario en el cliente: correo, documento, contraseña y confirmación (Juan Esteban)
+- [x] Validaciones de formulario en el cliente: formato de correo, documento numérico de 6–15 dígitos, contraseña mínima de 8 caracteres y confirmación (implementado y validado en el navegador; probar registro real con BD sigue pendiente).
 - [ ] Probar el registro contra la BD real (Julián, fase final)
 
 ### HU-02 — Inicio de sesión y roles (Juan Esteban / Yuber)
 - [x] `POST /api/auth/login` con JWT y rol (Julián)
 - [x] `SecurityConfig`, `@PreAuthorize` y filtro JWT (Julián)
-- [~] Login, `AuthContext` y `ProtectedRoute` por rol (Julián): el login ofrece acceso separado para adoptante y administrador, credenciales demo y redirección del administrador a `/admin`; el modo provisional permanece activo, y la sesión no se restaura al recargar.
-- [ ] Persistir la sesión al recargar la página (Juan Esteban)
-- [ ] Manejar token expirado: volver al login con aviso (Juan Esteban)
+- [~] Login, `AuthContext` y `ProtectedRoute` por rol (Julián): el login ofrece acceso separado para adoptante y administrador, credenciales demo y redirección del administrador a `/admin`; el modo provisional permanece activo.
+- [x] Persistir la sesión al recargar la página; nunca persistir la contraseña.
+- [x] Detectar token expirado y devolver al login con aviso (HTTP 401 del API o vencimiento JWT al restaurar la sesión).
 - [ ] Probar login real con adoptante y administrador (Julián, fase final)
 
 ### HU-03 — Gestión de perfil (Juan Esteban)
@@ -138,8 +138,8 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 ### HU-10 — Registro e inventario de mascotas (Julián / Juan Esteban)
 - [x] `POST /api/mascotas` con validaciones (Julián)
 - [~] Formulario "Registrar mascota" en el panel admin (Julián): el formulario existe; su funcionamiento integrado con la API debe confirmarse al retirar el modo provisional.
-- [ ] Inventario de mascotas en el panel admin con estado y acciones (Juan Esteban)
-- [ ] Mejorar formulario: previsualización de imagen, estado inicial y errores por campo (Juan Esteban)
+- [x] Inventario admin: listado por estado, edición precargada y desactivación con confirmación; `GET /api/mascotas` devuelve todos los estados al administrador y solo disponibles al adoptante. La validación en PostgreSQL sigue pendiente.
+- [x] Mejorar formulario de mascotas: vista previa, estado inicial visible y validaciones nativas por campo (nombre, edad, URL y salud).
 
 ---
 
@@ -154,20 +154,20 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 ### HU-05 — Búsqueda y filtros avanzados (Julián / Juan Esteban)
 - [x] Filtros con `Specification` por especie, raza, sexo, edad y tamaño (Julián)
 - [~] Barra de filtros en el catálogo (Julián): está implementada; falta validar su integración contra la API real.
-- [ ] Botón "Limpiar filtros" y listas desplegables para especie y tamaño (Juan Esteban)
+- [x] Botón "Limpiar filtros" y listas desplegables para especie y tamaño (limpieza ejecuta la búsqueda con filtros vacíos sin depender del estado React anterior).
 - [ ] Probar filtros contra la API real (Yuber)
 
 ### HU-06 — Ficha detallada de mascota (Juan Esteban)
 - [x] `GET /api/mascotas/{id}` (Julián)
 - [~] Ventana de detalle con datos y botón de solicitud (Julián): está en la interfaz provisional; integración con datos reales pendiente.
-- [ ] Mostrar el estado de salud real (hoy las etiquetas son fijas) (Juan Esteban)
+- [x] Mostrar estado de salud, vacunación y esterilización recibidos; cuando falten datos, la ficha muestra "sin información" en lugar de afirmar un estado fijo.
 - [ ] Página de detalle con URL propia `/mascotas/:id` (Juan Esteban)
 
 ### HU-11 — Actualizar y desactivar mascotas (Julián)
 - [x] `PUT /api/mascotas/{id}` y `PATCH /api/mascotas/{id}/desactivar` (Julián)
 - [x] Funciones `update` y `deactivate` en `services/api.js` (Julián)
-- [ ] Botones "Editar" y "Desactivar" en el inventario, con confirmación (Juan Esteban)
-- [ ] Formulario de edición precargado (Juan Esteban)
+- [x] Botones "Editar" y "Desactivar" en el inventario; la desactivación requiere confirmación (modo provisional y llamadas API).
+- [x] Formulario de edición precargado con los datos actuales (modo provisional y `PUT /api/mascotas/{id}`).
 
 ---
 
@@ -229,8 +229,8 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 - [ ] Ruta `/admin/usuarios` y enlace en el menú lateral (Juan Esteban)
 
 ### QA — Pruebas integrales y cierre (Yuber / Equipo completo)
-- [x] 19 pruebas unitarias aprobadas de `AuthService` (8), `SolicitudAdopcionService` (7) y `UsuarioService` (4), según reportes (Julián).
-- [ ] Pruebas de `MascotaService` (filtros, actualizar, desactivar) (Yuber)
+- [x] 20 pruebas unitarias aprobadas: `AuthService` (8), `SolicitudAdopcionService` (7), `UsuarioService` (4) y una de `MascotaService` (listado completo); ejecución actualizada 2026-10-27 sin prueba de integración/Docker.
+- [~] Pruebas de `MascotaService`: una prueba de listado completo añadida; faltan filtros, actualizar y desactivar.
 - [ ] Pruebas de `SeguimientoService` y `NotificacionService` (Yuber)
 - [!] `AdopetIntegrationTest` bloqueada: Testcontainers no encuentra Docker; habilitar Docker o acordar perfil alternativo (Yuber).
 - [ ] Pruebas de roles: adoptante sin acceso a rutas de administrador y viceversa (Yuber)
@@ -277,7 +277,7 @@ Se ejecuta cuando todas las vistas y funcionalidades estén completas con datos 
 
 - [ ] README técnico con pasos para correr backend, frontend y base de datos (Julián)
 - [ ] Revisar CORS y variables de entorno para ejecución en otro computador (Julián)
-- [ ] Generar el build final del frontend (`npm run build`); `dist/` actual está desactualizado (Juan Esteban)
+- [x] Generar build del frontend (`npm run build` desde `frontend/`); build de producción completado 2026-10-27. Repetir tras cambios posteriores.
 - [ ] Limpiar el repositorio: quitar `target/`, `node_modules/` y código provisional del paquete entregado (Yuber)
 - [ ] Revisión cruzada: cada cambio revisado por otro integrante (Definition of Done) (Equipo completo)
 - [ ] Confirmar que no hay errores críticos conocidos (Equipo completo)

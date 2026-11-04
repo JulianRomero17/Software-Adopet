@@ -97,7 +97,14 @@ class SolicitudAdopcionServiceTest {
                 adoptanteId, mascotaId, EstadoSolicitud.PENDIENTE)).thenReturn(false);
         when(usuarioRepository.findById(adoptanteId)).thenReturn(Optional.of(adoptante));
 
-        solicitudService.crearSolicitud(adoptanteId, mascotaId);
+        solicitudService.crearSolicitud(
+                adoptanteId,
+                mascotaId,
+                "Apartamento",
+                "Sí",
+                "He cuidado perros y gatos anteriormente.",
+                "Al menos cuatro horas al día.",
+                "Quiero ofrecerle un hogar estable.");
 
         ArgumentCaptor<SolicitudAdopcion> captor = ArgumentCaptor.forClass(SolicitudAdopcion.class);
         verify(solicitudAdopcionRepository).save(captor.capture());
@@ -105,6 +112,11 @@ class SolicitudAdopcionServiceTest {
         assertEquals(adoptante, guardada.getAdoptante());
         assertEquals(mascota, guardada.getMascota());
         assertEquals(EstadoSolicitud.PENDIENTE, guardada.getEstado());
+        assertEquals("Apartamento", guardada.getTipoVivienda());
+        assertEquals("Sí", guardada.getPermisoMascotas());
+        assertEquals("He cuidado perros y gatos anteriormente.", guardada.getExperiencia());
+        assertEquals("Al menos cuatro horas al día.", guardada.getTiempoDisponible());
+        assertEquals("Quiero ofrecerle un hogar estable.", guardada.getMotivacion());
     }
 
     @Test

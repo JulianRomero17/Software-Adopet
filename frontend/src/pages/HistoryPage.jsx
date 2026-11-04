@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import { CheckCircle2, ClipboardList, Clock3, PawPrint, XCircle } from 'lucide-react'
 import StatusPill from '../components/StatusPill'
 import { petsApi, requestsApi } from '../services/api'
-import { PROVISIONAL_MODE } from '../config'
-import { readHistory } from '../services/localStore'
 
 const decisionMessages = {
   APROBADA: {
@@ -42,14 +40,8 @@ export default function HistoryPage() {
     let active = true
 
     async function loadHistory() {
-      if (PROVISIONAL_MODE) {
-        setHistory(readHistory())
-        setLoading(false)
-        return
-      }
-
       try {
-        const { data } = await requestsApi.history()
+        const { data } = await requestsApi.mine()
         const results = await Promise.allSettled(data.map(async request => {
           if (!request.mascotaId) return request
           const { data: mascota } = await petsApi.detail(request.mascotaId)

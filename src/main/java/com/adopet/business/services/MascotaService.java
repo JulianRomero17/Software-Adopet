@@ -1,6 +1,7 @@
 package com.adopet.business.services;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 import org.springframework.data.jpa.domain.Specification;
@@ -57,6 +58,10 @@ public class MascotaService {
         return mascotaRepository.findByEstado(EstadoMascota.DISPONIBLE);
     }
 
+    public List<Mascota> listarTodas() {
+        return mascotaRepository.findAll();
+    }
+
     public List<Mascota> buscarYFiltrar(
             String especie,
             String raza,
@@ -70,15 +75,16 @@ public class MascotaService {
 
         if (especie != null && !especie.isBlank()) {
             specification = specification.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                    root.get("especie"), especie));
+                    criteriaBuilder.lower(root.get("especie")), normalizar(especie)));
         }
         if (raza != null && !raza.isBlank()) {
-            specification = specification.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                    root.get("raza"), raza));
+            String patronRaza = "%" + escaparLike(normalizar(raza)) + "%";
+            specification = specification.and((root, query, criteriaBuilder) -> criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("raza")), patronRaza, '\\'));
         }
         if (sexo != null && !sexo.isBlank()) {
             specification = specification.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                    root.get("sexo"), sexo));
+                    criteriaBuilder.lower(root.get("sexo")), normalizar(sexo)));
         }
         if (edadMin != null) {
             specification = specification.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(
@@ -90,7 +96,7 @@ public class MascotaService {
         }
         if (tamano != null && !tamano.isBlank()) {
             specification = specification.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                    root.get("tamano"), tamano));
+                    criteriaBuilder.lower(root.get("tamano")), normalizar(tamano)));
         }
 
         return mascotaRepository.findAll(specification);
@@ -135,5 +141,15 @@ public class MascotaService {
 
     private boolean esVacio(String valor) {
         return valor == null || valor.isBlank();
+    }
+
+    private String normalizar(String valor) {
+        return valor.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String escaparLike(String valor) {
+        return valor.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 }

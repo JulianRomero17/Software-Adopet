@@ -56,7 +56,14 @@ public class SolicitudAdopcionController {
             @Valid @RequestBody CrearSolicitudRequestDTO request,
             Authentication authentication) {
         Long adoptanteId = adoptanteService.obtenerPorCorreo(authentication.getName()).getId();
-        SolicitudAdopcion solicitud = solicitudService.crearSolicitud(adoptanteId, request.mascotaId());
+        SolicitudAdopcion solicitud = solicitudService.crearSolicitud(
+                adoptanteId,
+                request.mascotaId(),
+                request.tipoVivienda(),
+                request.permisoMascotas(),
+                request.experiencia(),
+                request.tiempoDisponible(),
+                request.motivacion());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SolicitudAdopcionResponseDTO.desde(solicitud));
     }

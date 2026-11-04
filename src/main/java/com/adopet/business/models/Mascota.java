@@ -28,6 +28,8 @@ public class Mascota {
     @Column(nullable = false)
     private String nombre;
 
+    private String edadTexto;
+
     private String especie;
 
     private String raza;
@@ -42,6 +44,10 @@ public class Mascota {
     private String descripcion;
 
     private String estadoSalud;
+
+    private String vacunacion;
+
+    private String esterilizacion;
 
     private String imagenUrl;
 

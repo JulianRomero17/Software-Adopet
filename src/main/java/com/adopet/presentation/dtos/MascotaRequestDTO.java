@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record MascotaRequestDTO(
         @NotBlank String nombre,
+        String edadTexto,
         @NotBlank String especie,
         String raza,
         @NotBlank String sexo,
@@ -13,5 +14,7 @@ public record MascotaRequestDTO(
         String tamano,
         String descripcion,
         @NotBlank String estadoSalud,
+        String vacunacion,
+        String esterilizacion,
         String imagenUrl) {
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adopet.business.exceptions.CorreoYaRegistradoException;
+import com.adopet.business.exceptions.CredencialesInvalidasException;
 import com.adopet.business.models.Adoptante;
 import com.adopet.business.services.AdoptanteService;
 import com.adopet.business.services.AuthService;
@@ -74,6 +75,13 @@ public class AuthController {
     public ResponseEntity<MensajeResponse> manejarCorreoYaRegistrado(
             CorreoYaRegistradoException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new MensajeResponse(exception.getMessage()));
+    }
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<MensajeResponse> manejarCredencialesInvalidas(
+            CredencialesInvalidasException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new MensajeResponse(exception.getMessage()));
     }
 

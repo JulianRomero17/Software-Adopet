@@ -46,6 +46,17 @@ public class SolicitudAdopcionService {
     }
 
     public SolicitudAdopcion crearSolicitud(Long adoptanteId, Long mascotaId) {
+        return crearSolicitud(adoptanteId, mascotaId, null, null, null, null, null);
+    }
+
+    public SolicitudAdopcion crearSolicitud(
+            Long adoptanteId,
+            Long mascotaId,
+            String tipoVivienda,
+            String permisoMascotas,
+            String experiencia,
+            String tiempoDisponible,
+            String motivacion) {
         Mascota mascota = mascotaRepository.findById(mascotaId)
                 .orElseThrow(() -> new MascotaNoEncontradaException(mascotaId));
         if (mascota.getEstado() != EstadoMascota.DISPONIBLE) {
@@ -63,6 +74,11 @@ public class SolicitudAdopcionService {
         solicitud.setMascota(mascota);
         solicitud.setFecha(LocalDate.now());
         solicitud.setEstado(EstadoSolicitud.PENDIENTE);
+        solicitud.setTipoVivienda(tipoVivienda);
+        solicitud.setPermisoMascotas(permisoMascotas);
+        solicitud.setExperiencia(experiencia);
+        solicitud.setTiempoDisponible(tiempoDisponible);
+        solicitud.setMotivacion(motivacion);
         return solicitudAdopcionRepository.save(solicitud);
     }
 
