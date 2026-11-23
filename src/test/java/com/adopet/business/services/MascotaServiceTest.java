@@ -1,12 +1,14 @@
 package com.adopet.business.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -24,6 +26,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.adopet.business.models.EstadoMascota;
 import com.adopet.business.models.Mascota;
+import com.adopet.business.exceptions.DatosMascotaInvalidosException;
 import com.adopet.data.dao.MascotaRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +49,45 @@ class MascotaServiceTest {
 
         assertEquals(mascotas, mascotaService.listarTodas());
         verify(mascotaRepository).findAll();
+    }
+
+    @Test
+    void desactivarDebeGuardarMotivoYEstado() {
+        Mascota mascota = new Mascota();
+        mascota.setId(7L);
+        mascota.setEstado(EstadoMascota.DISPONIBLE);
+        when(mascotaRepository.findById(7L)).thenReturn(Optional.of(mascota));
+        when(mascotaRepository.save(mascota)).thenReturn(mascota);
+
+        Mascota resultado = mascotaService.desactivarMascota(7L, "  Pausa temporal  ");
+
+        assertSame(mascota, resultado);
+        assertEquals(EstadoMascota.NO_DISPONIBLE, resultado.getEstado());
+        assertEquals("Pausa temporal", resultado.getMotivoDesactivacion());
+        verify(mascotaRepository).save(mascota);
+    }
+
+    @Test
+    void reactivarDebeDejarMascotaDisponibleYConservarMotivo() {
+        Mascota mascota = new Mascota();
+        mascota.setId(7L);
+        mascota.setEstado(EstadoMascota.NO_DISPONIBLE);
+        mascota.setMotivoDesactivacion("Pausa temporal");
+        when(mascotaRepository.findById(7L)).thenReturn(Optional.of(mascota));
+        when(mascotaRepository.save(mascota)).thenReturn(mascota);
+
+        Mascota resultado = mascotaService.reactivarMascota(7L);
+
+        assertEquals(EstadoMascota.DISPONIBLE, resultado.getEstado());
+        assertEquals("Pausa temporal", resultado.getMotivoDesactivacion());
+        verify(mascotaRepository).save(mascota);
+    }
+
+    @Test
+    void desactivarDebeRechazarMotivoVacio() {
+        org.junit.jupiter.api.Assertions.assertThrows(
+                DatosMascotaInvalidosException.class,
+                () -> mascotaService.desactivarMascota(7L, "  "));
     }
 
     @Test

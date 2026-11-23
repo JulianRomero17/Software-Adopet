@@ -1,0 +1,278 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry,microtype,xcolor,booktabs,tabularx,longtable,array,enumitem,listings,fancyhdr,titlesec,hyperref,xurl}
+\geometry{margin=25mm,headheight=15pt}
+\definecolor{Navy}{HTML}{17324D}\definecolor{Teal}{HTML}{168C8C}\definecolor{Pale}{HTML}{EAF3F5}\definecolor{CodeBg}{HTML}{F3F6F8}
+\hypersetup{colorlinks=true,linkcolor=Teal,urlcolor=Teal,pdftitle={Informe técnico del microservicio Adopet},pdfauthor={Proyecto Adopet}}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{3em}
+\setlist[itemize]{leftmargin=18pt,itemsep=2pt,topsep=3pt}\setlist[enumerate]{leftmargin=21pt,itemsep=3pt,topsep=3pt}
+\titleformat{\section}{\Large\bfseries\color{Navy}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries\color{Teal}}{\thesubsection}{0.7em}{}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\color{Navy}ADOPET | ARQUITECTURA DE SOFTWARE}\fancyhead[R]{\small\color{Navy}Microservicio de notificaciones}
+\fancyfoot[L]{\small\color{gray}Informe técnico | Noviembre de 2026}\fancyfoot[R]{\small\color{gray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\lstdefinestyle{terminal}{basicstyle=\ttfamily\small,backgroundcolor=\color{CodeBg},frame=single,rulecolor=\color{Pale},breaklines=true,columns=fullflexible,keepspaces=true,showstringspaces=false,upquote=true,aboveskip=7pt,belowskip=7pt}
+\lstdefinestyle{source}{basicstyle=\ttfamily\footnotesize,backgroundcolor=\color{CodeBg},frame=single,rulecolor=\color{Pale},breaklines=true,columns=fullflexible,keepspaces=true,showstringspaces=false,upquote=true,language=Java}
+\lstset{style=terminal}
+\newcommand{\pathcode}[1]{\small\url{#1}}\newcommand{\envvar}[1]{\small\url{#1}}
+\newcommand{\callout}[1]{\begin{center}\colorbox{Pale}{\parbox{0.93\linewidth}{\vspace{5pt}#1\vspace{5pt}}}\end{center}}
+\begin{document}
+\begin{titlepage}\thispagestyle{empty}\vspace*{22mm}\begin{center}
+{\Large\bfseries\color{Teal}PROYECTO ADOPET\par}\vspace{15mm}
+{\Huge\bfseries\color{Navy}Informe técnico de\par}\vspace{3mm}{\Huge\bfseries\color{Navy}microservicios\par}\vspace{5mm}
+{\LARGE Microservicio de notificaciones por correo\par}\vspace{10mm}\rule{0.72\linewidth}{1.2pt}\par\vspace{8mm}
+{\large Ubicación, arquitectura, integración, configuración y operación\par}\vfill
+\begin{tabular}{rl}\textbf{Sistema:} & Adopet, plataforma de adopción de mascotas\\\textbf{Servicio:} & notification-service\\\textbf{Tecnología:} & Java 21 y Spring Boot 3.5.6\\\textbf{Fecha:} & 23 de noviembre de 2026\\\end{tabular}\vfill
+\begin{minipage}{0.82\linewidth}\centering\small Este documento identifica dónde se encuentra el microservicio, explica sus archivos, detalla su contrato con el backend y ofrece los pasos para configurarlo y ejecutarlo.\end{minipage}\vspace{12mm}\end{center}\end{titlepage}
+\tableofcontents\clearpage
+
+\section{Resumen ejecutivo}
+Adopet tenía el envío de correos implementado dentro de la aplicación monolítica. Se separó esa responsabilidad en una aplicación Spring Boot que se ejecuta como proceso independiente. El backend conserva las reglas del dominio de adopciones y la base de datos; el proceso nuevo recibe una petición HTTP con los datos mínimos para enviar correo SMTP.
+
+La carpeta del microservicio desde la raíz es \pathcode{microservices/notification-service/}. El backend se integra desde \pathcode{src/main/java/com/adopet/business/services/NotificacionService.java}. Ambos usan una clave compartida para autenticar las llamadas internas. URL, puerto, credenciales SMTP y clave se configuran por variables de entorno.
+
+\callout{\textbf{Alcance implementado.} Servicio independiente para notificar cambios de estado de solicitudes, endpoint de salud, validación de entrada, autenticación por clave, Dockerfile, Compose e instrucciones. El envío real necesita credenciales SMTP válidas.}
+\subsection{Resultados}
+\begin{itemize}
+\item Proyecto Maven autónomo con ciclo de compilación y JAR propios.
+\item El backend dejó de depender de \texttt{JavaMailSender}; SMTP quedó en el servicio separado.
+\item API HTTP interna con JSON explícito y reducido.
+\item Autenticación mediante \texttt{X-Internal-Api-Key}, comparada en tiempo constante.
+\item Empaquetado en contenedor y ejecución documentada.
+\end{itemize}
+
+\section{Ubicación dentro del proyecto}
+\subsection{Ruta desde la raíz}
+La raíz local es \pathcode{C:/Users/julia/Downloads/Proyecto FIS/}. La estructura fuente del servicio es:
+\begin{lstlisting}
+microservices/
+|-- notification-service/
+    |-- Dockerfile
+    |-- README.md
+    |-- pom.xml
+    |-- src/main/java/com/adopet/notifications/
+    |   |-- NotificationApplication.java
+    |   |-- NotificationController.java
+    |   +-- NotificationRequest.java
+    +-- src/main/resources/application.properties
+\end{lstlisting}
+\begin{longtable}{p{0.40\linewidth}p{0.53\linewidth}}
+\toprule\textbf{Ruta} & \textbf{Contenido y función}\\\midrule\endfirsthead\toprule\textbf{Ruta} & \textbf{Contenido y función}\\\midrule\endhead
+\pathcode{microservices/} & Agrupador de servicios fuera del backend principal.\\
+\pathcode{microservices/notification-service/} & Raíz del proyecto Maven; aquí se ejecutan sus comandos locales.\\
+\pathcode{.../src/main/java/com/adopet/notifications/} & Clases Java del microservicio y paquete base.\\
+\pathcode{.../src/main/resources/} & Configuración Spring propia del servicio.\\
+\pathcode{.../pom.xml} & Dependencias, versión Java y empaquetado.\\
+\pathcode{.../Dockerfile} & Construcción del JAR y ejecución de la imagen.\\
+\pathcode{.../README.md} & Manual operativo del servicio.\\
+\bottomrule\end{longtable}
+
+El servicio está separado de \pathcode{src/main/java/com/adopet}, que pertenece al backend monolítico. El cliente HTTP de integración está en \pathcode{src/main/java/com/adopet/business/services/NotificacionService.java}. La URL se configura en \pathcode{src/main/resources/application.properties} del backend; el servicio independiente posee otro archivo de propiedades bajo su propia carpeta de recursos. El despliegue está en \pathcode{docker-compose.notifications.yml}, en la raíz.
+
+\section{Arquitectura y responsabilidades}
+\subsection{Vista lógica}
+\begin{center}\fbox{\begin{minipage}{0.91\linewidth}\centering
+\textbf{Administrador / interfaz web}\\\texttt{PATCH /api/solicitudes/\{id\}/decision}\\[4pt]
+$\Downarrow$\\[4pt]\textbf{Backend Adopet | Spring Boot principal}\\\texttt{SolicitudAdopcionService}: guarda decisión y solicita aviso\\[4pt]
+$\Downarrow$ \texttt{POST} + JSON + \texttt{X-Internal-Api-Key}\\[4pt]
+\textbf{notification-service | proceso Spring Boot independiente}\\valida clave y datos; compone el mensaje\\[4pt]
+$\Downarrow$ SMTP\\[4pt]\textbf{Servidor de correo}
+\end{minipage}}\end{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.28\linewidth}X}
+\toprule Componente & Responsabilidad\\\midrule
+Backend & Autentica y autoriza usuarios, decide estados, accede al modelo y persiste en PostgreSQL.\\
+Microservicio & Recibe orden interna, valida datos y secreto, forma correo y se comunica con SMTP.\\
+PostgreSQL & Fuente de solicitudes, adoptantes y mascotas. El servicio nuevo no se conecta a esta base.\\
+\bottomrule\end{tabularx}
+\subsection{Secuencia de notificación}
+\begin{enumerate}
+\item El administrador aprueba o rechaza una solicitud mediante el backend.
+\item \texttt{SolicitudAdopcionService.decidirSolicitud} carga, cambia y guarda el estado.
+\item Después del repositorio \texttt{save}, el método invoca \texttt{NotificacionService.notificarCambioEstado}.
+\item El cliente crea JSON con identificador, email, estado y fecha de actualización.
+\item El backend hace POST al servicio y agrega la clave en el encabezado.
+\item El microservicio valida la clave y el DTO, forma \texttt{SimpleMailMessage} y lo envía mediante \texttt{JavaMailSender}.
+\item El backend registra respuesta HTTP de error o excepción de red; el error de correo no cancela la decisión.
+\end{enumerate}
+\textbf{Transacción:} el método de decisión tiene \texttt{@Transactional}. La llamada HTTP ocurre después de \texttt{save}, pero antes del retorno y del fin de la transacción. Es síncrona y no usa Outbox ni cola durable.
+
+\section{Código del servicio, archivo por archivo}
+\subsection{Arranque}
+\pathcode{microservices/notification-service/src/main/java/com/adopet/notifications/NotificationApplication.java} contiene el método \texttt{main}, que ejecuta \texttt{SpringApplication.run}. \texttt{@SpringBootApplication} activa configuración automática y escaneo de componentes.
+
+\subsection{DTO}
+\pathcode{.../NotificationRequest.java} es un \texttt{record} Java independiente de las entidades:
+\begin{lstlisting}[style=source]
+public record NotificationRequest(
+    @NotNull @Positive Long solicitudId,
+    @NotBlank @Email String destinatario,
+    @NotBlank String estado,
+    @NotNull LocalDateTime fechaCambio) { }
+\end{lstlisting}
+El endpoint aplica \texttt{@Valid}. Se rechazan identificadores nulos/no positivos, emails inválidos, campos vacíos o fecha ausente. No viajan entidades JPA ni objetos completos del dominio.
+
+\subsection{Controlador}
+\pathcode{.../NotificationController.java} implementa dos endpoints: \texttt{GET /health} y \texttt{POST} en la ruta \pathcode{/internal/notifications/status-change}. Health devuelve nombre y \texttt{UP}. El endpoint interno valida clave y carga, asigna remitente, destinatario, asunto y cuerpo.
+La clave se compara con \texttt{MessageDigest.isEqual} sobre bytes UTF-8. Secreto vacío o no coincidente devuelve 401; petición inválida, 400; error SMTP, 5xx. La respuesta exitosa incluye \texttt{status=sent} y el id de solicitud.
+
+\subsection{Configuración y empaquetado}
+\pathcode{.../src/main/resources/application.properties} configura:
+\begin{itemize}
+\item \envvar{SERVER_PORT}: puerto HTTP, por defecto 8081.
+\item \envvar{SMTP_HOST}, \envvar{SMTP_PORT}: host SMTP y puerto, por defecto 587.
+\item \envvar{SMTP_USERNAME}, \envvar{SMTP_PASSWORD}: cuenta/remitente y secreto SMTP.
+\item \envvar{INTERNAL_API_KEY}: secreto que protege llamadas internas.
+\item Autenticación SMTP, STARTTLS y tiempos máximos de conexión y lectura.
+\end{itemize}
+El backend ya no necesita SMTP. \pathcode{microservices/notification-service/pom.xml} define Java 21, Spring Boot 3.5.6 y dependencias Web, Mail y Validation. Produce \pathcode{target/notification-service-1.0.0.jar}. El Dockerfile compila con Maven/JDK y ejecuta el artefacto con JRE.
+
+\section{Contrato HTTP}
+\subsection{Estado del servicio}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.27\linewidth}X}\toprule
+Método/ruta & \texttt{GET /health}\\\midrule
+Propósito & Confirma que el servidor HTTP inició; no comprueba SMTP.\\
+Respuesta & \texttt{\{"service":"notification-service","status":"UP"\}}\\
+Credencial & No requiere clave.\\\bottomrule\end{tabularx}
+\subsection{Cambio de estado}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.27\linewidth}X}\toprule
+Método/ruta & \texttt{POST /internal/notifications/status-change}\\\midrule
+Content-Type & \texttt{application/json}\\
+Header & \texttt{X-Internal-Api-Key: <secreto-compartido>}\\
+Éxito & HTTP 200 con \texttt{status=sent} e identificador.\\
+Errores & 400 datos inválidos; 401 clave incorrecta/vacía; 5xx fallo SMTP.\\\bottomrule\end{tabularx}
+Cuerpo de ejemplo:
+\begin{lstlisting}
+{
+  "solicitudId": 42,
+  "destinatario": "adoptante@example.com",
+  "estado": "APROBADA",
+  "fechaCambio": "2026-11-23T10:30:00"
+}
+\end{lstlisting}
+La fecha usa formato ISO-8601 local, compatible con \texttt{LocalDateTime}. Se transmite lo mínimo que necesita el correo.
+
+\section{Integración con el backend}
+El cliente HTTP vive en \pathcode{src/main/java/com/adopet/business/services/NotificacionService.java}. Usa \texttt{java.net.http.HttpClient} del JDK; el backend no suma dependencia HTTP ni de correo. Lee:
+\begin{itemize}
+\item \envvar{adopet.notifications.url}, variable \envvar{NOTIFICATION_SERVICE_URL}, predeterminado \texttt{http://localhost:8081}.
+\item \envvar{adopet.notifications.api-key}, variable \envvar{NOTIFICATION_SERVICE_API_KEY}, predeterminado vacío.
+\end{itemize}
+Añade la ruta del endpoint a la URL base, construye JSON y transmite la clave. El timeout de conexión es de 2 segundos y el máximo de petición de 4 segundos. Respuestas HTTP de error y excepciones quedan registradas; no se propagan a la decisión.
+
+\subsection{Archivos modificados del backend}
+\begin{longtable}{p{0.45\linewidth}p{0.48\linewidth}}\toprule\textbf{Archivo} & \textbf{Cambio}\\\midrule\endfirsthead
+\toprule\textbf{Archivo} & \textbf{Cambio}\\\midrule\endhead
+\pathcode{src/main/java/com/adopet/business/services/NotificacionService.java} & Cliente HTTP en lugar de envío SMTP local.\\
+\pathcode{src/main/resources/application.properties} & URL y secreto de integración.\\
+\pathcode{pom.xml} & Quitó starter Mail del backend; Mail queda en el microservicio.\\
+\pathcode{.env.example} & Ejemplos de URL, clave y SMTP.\\
+\pathcode{docker-compose.notifications.yml} & Construcción, puerto y variables de contenedor.\\\bottomrule
+\end{longtable}
+
+\section{Variables y secretos}
+\begin{longtable}{p{0.34\linewidth}p{0.19\linewidth}p{0.38\linewidth}}
+\toprule\textbf{Variable} & \textbf{Proceso} & \textbf{Uso}\\\midrule\endfirsthead
+\toprule\textbf{Variable} & \textbf{Proceso} & \textbf{Uso}\\\midrule\endhead
+\envvar{NOTIFICATION_SERVICE_URL} & Backend & URL alcanzable; localmente localhost:8081.\\
+\envvar{NOTIFICATION_SERVICE_API_KEY} & Backend/Compose & Secreto compartido; Compose lo pasa como \envvar{INTERNAL_API_KEY}.\\
+\envvar{INTERNAL_API_KEY} & Servicio & Clave validada por el controlador.\\
+\envvar{SMTP_HOST} & Servicio & Host SMTP.\\
+\envvar{SMTP_PORT} & Servicio & Puerto SMTP; predeterminado 587.\\
+\envvar{SMTP_USERNAME} & Servicio & Usuario y remitente.\\
+\envvar{SMTP_PASSWORD} & Servicio & Clave SMTP.\\
+\envvar{SERVER_PORT} & Servicio & Puerto HTTP; predeterminado 8081.\\\bottomrule
+\end{longtable}
+La clave debe coincidir en los dos procesos y ser privada. \pathcode{.env} está excluido por \pathcode{.gitignore}; no guardes secretos en código, imagen Docker o logs.
+
+\section{Instalación y ejecución paso a paso}
+\subsection{Opción A: microservicio Docker y backend local}
+\begin{enumerate}
+\item Desde la raíz, crea/edita \pathcode{.env} guiándote por \pathcode{.env.example}. Define clave privada y completa las variables SMTP con credenciales válidas.
+\item Construye y levanta:
+\begin{lstlisting}
+docker compose -f docker-compose.notifications.yml up --build
+\end{lstlisting}
+\item En otra terminal comprueba HTTP:
+\begin{lstlisting}
+Invoke-RestMethod http://localhost:8081/health
+\end{lstlisting}
+\item Arranca el backend desde la raíz con \envvar{NOTIFICATION_SERVICE_URL=http://localhost:8081} y la misma clave. La configuración Spring del backend importa el \pathcode{.env} raíz.
+\item Ejecuta una aprobación o rechazo de prueba; revisa logs de ambos procesos y el buzón destinatario.
+\end{enumerate}
+\subsection{Opción B: ambos procesos locales}
+Configura PowerShell con valores privados propios:
+\begin{lstlisting}
+$env:INTERNAL_API_KEY = "secreto-privado-compartido"
+$env:SMTP_HOST = "smtp.example.com"
+$env:SMTP_PORT = "587"
+$env:SMTP_USERNAME = "cuenta@example.com"
+$env:SMTP_PASSWORD = "clave-de-aplicacion"
+Set-Location microservices/notification-service
+mvn spring-boot:run
+\end{lstlisting}
+En otra terminal configura la misma clave y la URL en el proceso backend, y arranca Adopet desde la raíz. El microservicio iniciado por Maven toma variables del sistema operativo; no importa por sí mismo el \pathcode{.env} de la raíz.
+
+\subsection{Opción C: backend dentro de Docker}
+El Compose entregado define únicamente el microservicio. El backend contenedor debe compartir red con este; usa \texttt{http://notification-service:8081}. Dentro de un contenedor, localhost apunta a ese mismo contenedor. Dos proyectos Compose separados necesitan una red compartida o una configuración Compose común.
+
+\section{Comprobación y diagnóstico}
+\texttt{/health} solo confirma que HTTP está arriba. No valida SMTP ni entrega. Para verificar correo se necesitan credenciales reales y una solicitud de prueba.
+Llamada manual opcional en PowerShell:
+\begin{lstlisting}
+$headers = @{ "X-Internal-Api-Key" = $env:NOTIFICATION_SERVICE_API_KEY }
+$body = @{
+  solicitudId = 42
+  destinatario = "adoptante@example.com"
+  estado = "APROBADA"
+  fechaCambio = "2026-11-23T10:30:00"
+} | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://localhost:8081/internal/notifications/status-change -Headers $headers -ContentType "application/json" -Body $body
+\end{lstlisting}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.25\linewidth}X}\toprule Síntoma & Revisar\\\midrule
+No conecta/timeout & Servicio activo, URL accesible, puerto 8081 y red.\\
+HTTP 401 & Coincidencia y presencia de NOTIFICATION\_SERVICE\_API\_KEY e INTERNAL\_API\_KEY.\\
+HTTP 400 & Cuatro campos, formato de email y fecha ISO-8601.\\
+HTTP 5xx/no llega correo & Host y puerto SMTP, autenticación, STARTTLS, remitente y logs del proveedor.\\
+Health responde sin correo & Health no comprueba SMTP; hacer una solicitud de prueba autorizada.\\\bottomrule\end{tabularx}
+
+\section{Despliegue y seguridad}
+\pathcode{docker-compose.notifications.yml} publica 8081:8081, construye desde \pathcode{microservices/notification-service/} y entrega configuración SMTP. La clave es obligatoria en Compose; el controlador no autoriza un secreto vacío. Para producción:
+\begin{itemize}
+\item Limita el endpoint interno por firewall o red privada.
+\item Usa TLS si el tráfico sale de una red confiable.
+\item Guarda secretos en un gestor del entorno de ejecución, no en imágenes ni control de versiones.
+\item Añade métricas y alertas sin registrar claves o credenciales.
+\end{itemize}
+
+\section{Limitaciones y mejoras futuras}
+La llamada es síncrona y el backend espera hasta cuatro segundos. La petición HTTP ocurre dentro de la operación transaccional. No hay Outbox, cola durable, reintentos automáticos, almacenamiento de pendientes, idempotencia, plantilla HTML ni historial de entrega. Si falla el envío, la decisión no se revierte y el aviso puede perderse. No se midió escalabilidad con pruebas de carga.
+Se recomienda como evolución una cola persistente/Outbox, reintentos progresivos, idempotencia, métricas de entrega y pruebas automatizadas entre procesos. No están incluidas en esta versión.
+
+\section{Verificación realizada}
+El backend y el JAR independiente terminaron sus empaquetados Maven con \texttt{BUILD SUCCESS}. En el empaquetado final del backend se omitieron compilación de pruebas y ejecución de la suite. No se arrancó el servicio conectado a SMTP ni se confirmó recepción de correo real.
+Las páginas de este informe se renderizaron y revisaron para comprobar márgenes, tablas, código, encabezados y numeración. El uso real requiere configurar clave y SMTP, iniciar los dos procesos y enviar una notificación controlada.
+
+\section{Inventario y conclusión}
+\begin{longtable}{p{0.49\linewidth}p{0.44\linewidth}}\toprule\textbf{Ruta} & \textbf{Función}\\\midrule\endfirsthead
+\toprule\textbf{Ruta} & \textbf{Función}\\\midrule\endhead
+\pathcode{microservices/notification-service/} & Módulo autónomo.\\
+\pathcode{.../pom.xml} & Dependencias y empaquetado Maven.\\
+\pathcode{.../NotificationApplication.java} & Arranque Spring Boot.\\
+\pathcode{.../NotificationController.java} & API, clave interna y SMTP.\\
+\pathcode{.../NotificationRequest.java} & DTO y validaciones.\\
+\pathcode{.../src/main/resources/application.properties} & Puerto, SMTP y secreto.\\
+\pathcode{.../Dockerfile} & Imagen del proceso.\\
+\pathcode{.../README.md} & Manual local.\\
+\pathcode{src/main/java/com/adopet/business/services/NotificacionService.java} & Cliente HTTP del backend.\\
+\pathcode{src/main/java/com/adopet/business/services/SolicitudAdopcionService.java} & Invocación tras decisión.\\
+\pathcode{src/main/resources/application.properties} & URL y secreto del backend.\\
+\pathcode{docker-compose.notifications.yml} & Arranque del contenedor.\\
+\pathcode{.env.example} & Variables de ejemplo.\\\bottomrule\end{longtable}
+
+Adopet cuenta con una frontera separada para correo: el backend conserva la gestión de adopciones y una aplicación Spring Boot independiente envía por SMTP. La ubicación exacta es \pathcode{microservices/notification-service/}; la integración está bajo \pathcode{src/main/java/com/adopet/business/services/}. La operación requiere red accesible, el mismo secreto compartido y una cuenta SMTP funcional.
+\end{document}

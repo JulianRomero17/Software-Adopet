@@ -1,0 +1,15 @@
+services:
+  notification-service:
+    build:
+      context: ./microservices/notification-service
+    container_name: adopet-notification-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      INTERNAL_API_KEY: ${NOTIFICATION_SERVICE_API_KEY:?Define NOTIFICATION_SERVICE_API_KEY en .env}
+    restart: unless-stopped

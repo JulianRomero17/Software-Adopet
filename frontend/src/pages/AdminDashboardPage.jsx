@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, ClipboardList, Mail, MapPin, PawPrint, Pencil, Phone, Plus, Search, ShieldCheck, UserRound, X } from 'lucide-react'
+import { Check, ClipboardList, Mail, MapPin, PawPrint, Pencil, Phone, Plus, RotateCcw, Search, ShieldCheck, UserRound, X } from 'lucide-react'
 import { petsApi, requestsApi, usersApi } from '../services/api'
 import StatusPill from '../components/StatusPill'
 import Toast from '../components/Toast'
@@ -26,6 +26,9 @@ export default function AdminDashboardPage() {
   const [toast, setToast] = useState('')
   const [decision, setDecision] = useState(null)
   const [note, setNote] = useState('')
+  const [petToDeactivate, setPetToDeactivate] = useState(null)
+  const [deactivationReason, setDeactivationReason] = useState('')
+  const [updatingPetStatus, setUpdatingPetStatus] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [reviewingId, setReviewingId] = useState(null)
   const [form, setForm] = useState(EMPTY_PET)
@@ -101,14 +104,37 @@ export default function AdminDashboardPage() {
     }
   }
 
-  async function deactivatePet(pet) {
-    if (!window.confirm(`¿Desactivar a ${pet.nombre}? Ya no aparecerá en el catálogo.`)) return
+  async function deactivatePet(event) {
+    event.preventDefault()
+    if (!petToDeactivate || !deactivationReason.trim()) return
+    setUpdatingPetStatus(true)
     try {
-      await petsApi.deactivate(pet.id)
-      setToast(`${pet.nombre} fue desactivada del catálogo.`)
+      await petsApi.deactivate(petToDeactivate.id, deactivationReason.trim())
+      setToast(`${petToDeactivate.nombre} fue desactivada del catálogo.`)
+      setPetToDeactivate(null)
+      setDeactivationReason('')
       await load()
     } catch (err) {
-      setToast(err.response?.data?.mensaje || err.message || 'No pudimos desactivar la mascota.')
+      setToast(err.response?.status === 403
+        ? 'El servidor no reconoce tu sesión como administrador. Cierra sesión y vuelve a ingresar.'
+        : err.response?.data?.mensaje || err.message || 'No pudimos desactivar la mascota.')
+    } finally {
+      setUpdatingPetStatus(false)
+    }
+  }
+
+  async function reactivatePet(pet) {
+    setUpdatingPetStatus(true)
+    try {
+      await petsApi.reactivate(pet.id)
+      setToast(`${pet.nombre} fue reactivada y está disponible en el catálogo.`)
+      await load()
+    } catch (err) {
+      setToast(err.response?.status === 403
+        ? 'El servidor no reconoce tu sesión como administrador. Cierra sesión y vuelve a ingresar.'
+        : err.response?.data?.mensaje || err.message || 'No pudimos reactivar la mascota.')
+    } finally {
+      setUpdatingPetStatus(false)
     }
   }
 
@@ -154,8 +180,14 @@ export default function AdminDashboardPage() {
 
     <section className="surface mt-8 overflow-hidden">
       <div className="flex items-center justify-between border-b border-[#EEE7DD] px-6 py-5"><div><h2 className="font-display text-2xl font-bold">Mascotas registradas</h2><p className="mt-1 text-sm text-[#9A9187]">Controla qué mascotas aparecen en el catálogo.</p></div><PawPrint className="text-sage-600" /></div>
-      <div className="divide-y divide-[#F1ECE5]">{pets.map(pet => <div key={pet.id} className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-4"><div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-sage-50">{pet.imagenUrl ? <img src={pet.imagenUrl} alt="" className="h-full w-full object-cover" /> : <PawPrint size={20} className="text-sage-600" />}</div><div><p className="font-bold text-ink">{pet.nombre}</p><p className="mt-1 text-xs text-[#81786F]">{pet.especie} · {pet.raza || 'Sin raza'} · {pet.edadTexto || `${pet.edad} años`}</p></div></div><div className="flex flex-wrap items-center gap-3"><StatusPill status={pet.estado} /><button type="button" onClick={() => editPet(pet)} className="inline-flex items-center gap-1 text-xs font-bold text-sage-700 hover:text-sage-900"><Pencil size={14} /> Editar</button>{pet.estado !== 'ADOPTADA' && pet.estado !== 'NO_DISPONIBLE' && <button type="button" onClick={() => deactivatePet(pet)} className="text-xs font-bold text-coral-700 hover:text-coral-900">Desactivar</button>}</div></div>)}</div>
+      <div className="divide-y divide-[#F1ECE5]">{pets.map(pet => <div key={pet.id} className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-4"><div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-sage-50">{pet.imagenUrl ? <img src={pet.imagenUrl} alt="" className="h-full w-full object-cover" /> : <PawPrint size={20} className="text-sage-600" />}</div><div><p className="font-bold text-ink">{pet.nombre}</p><p className="mt-1 text-xs text-[#81786F]">{pet.especie} · {pet.raza || 'Sin raza'} · {pet.edadTexto || `${pet.edad} años`}</p>{pet.estado === 'NO_DISPONIBLE' && pet.motivoDesactivacion && <p className="mt-1 text-xs text-coral-700">Motivo de desactivación: {pet.motivoDesactivacion}</p>}</div></div><div className="flex flex-wrap items-center gap-3"><StatusPill status={pet.estado} /><button type="button" onClick={() => editPet(pet)} className="inline-flex items-center gap-1 text-xs font-bold text-sage-700 hover:text-sage-900"><Pencil size={14} /> Editar</button>{pet.estado === 'NO_DISPONIBLE' && <button type="button" disabled={updatingPetStatus} onClick={() => reactivatePet(pet)} className="inline-flex items-center gap-1 text-xs font-bold text-sage-700 hover:text-sage-900 disabled:opacity-50"><RotateCcw size={14} /> Reactivar</button>}{pet.estado !== 'ADOPTADA' && pet.estado !== 'NO_DISPONIBLE' && <button type="button" disabled={updatingPetStatus} onClick={() => { setPetToDeactivate(pet); setDeactivationReason('') }} className="text-xs font-bold text-coral-700 hover:text-coral-900 disabled:opacity-50">Desactivar</button>}</div></div>)}</div>
     </section>
+
+    {petToDeactivate && <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="deactivate-pet-title"><form onSubmit={deactivatePet} className="surface w-full max-w-lg p-6 sm:p-8">
+      <div className="flex items-start justify-between gap-4"><div><p className="eyebrow">Actualizar catálogo</p><h2 id="deactivate-pet-title" className="mt-1 font-display text-2xl font-bold text-ink">Desactivar a {petToDeactivate.nombre}</h2><p className="mt-2 text-sm leading-6 text-[#81786F]">La mascota dejará de aparecer para adopción. Indica el motivo para que quede registrado.</p></div><button type="button" disabled={updatingPetStatus} onClick={() => setPetToDeactivate(null)} className="rounded-lg p-2 text-[#8A8178]" aria-label="Cancelar desactivación"><X size={19} /></button></div>
+      <label className="mt-5 block"><span className="mb-2 block text-sm font-bold text-ink">Motivo de desactivación</span><textarea autoFocus required maxLength={1000} className="field min-h-28" placeholder="Describe por qué se desactiva esta mascota..." value={deactivationReason} onChange={event => setDeactivationReason(event.target.value)} /><span className="mt-1 block text-right text-xs text-[#9A9187]">{deactivationReason.length}/1000</span></label>
+      <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button type="button" disabled={updatingPetStatus} onClick={() => setPetToDeactivate(null)} className="secondary-button">Cancelar</button><button type="submit" disabled={updatingPetStatus || !deactivationReason.trim()} className="primary-button">{updatingPetStatus ? 'Desactivando...' : 'Confirmar desactivación'}</button></div>
+    </form></div>}
 
     {decision && <div className="fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="request-title"><div className="surface my-auto max-h-[94vh] w-full max-w-5xl overflow-y-auto p-5 sm:p-8">
       <div className="flex items-start justify-between gap-4"><div><p className="eyebrow">Evaluación del candidato</p><h2 id="request-title" className="mt-1 font-display text-3xl font-bold">Solicitud #{decision.id}</h2><p className="mt-2 text-sm text-[#81786F]">Revisa la información del adoptante y de la mascota antes de tomar una decisión.</p></div><button onClick={() => setDecision(null)} className="rounded-lg p-2 text-[#8A8178]" aria-label="Cerrar detalles de solicitud"><X size={19} /></button></div>

@@ -37,7 +37,8 @@ export const petsApi = {
   list: (params) => api.get('/mascotas', { params }).then(normalizePetListResponse),
   create: (payload) => api.post('/mascotas', payload).then(normalizePetResponse),
   update: (id, payload) => api.put(`/mascotas/${id}`, payload).then(normalizePetResponse),
-  deactivate: (id) => api.patch(`/mascotas/${id}/desactivar`),
+  deactivate: (id, motivo) => api.patch(`/mascotas/${id}/desactivar`, { motivo }),
+  reactivate: (id) => api.patch(`/mascotas/${id}/reactivar`),
   detail: (id) => api.get(`/mascotas/${id}`).then(normalizePetResponse),
 }
 

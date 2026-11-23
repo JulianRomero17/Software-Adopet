@@ -21,6 +21,7 @@ import com.adopet.business.exceptions.DatosMascotaInvalidosException;
 import com.adopet.business.exceptions.MascotaNoEncontradaException;
 import com.adopet.business.models.Mascota;
 import com.adopet.business.services.MascotaService;
+import com.adopet.presentation.dtos.DesactivarMascotaRequestDTO;
 import com.adopet.presentation.dtos.MascotaRequestDTO;
 import com.adopet.presentation.dtos.MascotaResponseDTO;
 import com.adopet.presentation.dtos.MensajeResponse;
@@ -55,8 +56,17 @@ public class MascotaController {
 
     @PatchMapping("/{id}/desactivar")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<MascotaResponseDTO> desactivar(@PathVariable Long id) {
-        return ResponseEntity.ok(MascotaResponseDTO.desde(mascotaService.desactivarMascota(id)));
+    public ResponseEntity<MascotaResponseDTO> desactivar(
+            @PathVariable Long id,
+            @Valid @RequestBody DesactivarMascotaRequestDTO request) {
+        return ResponseEntity.ok(MascotaResponseDTO.desde(
+                mascotaService.desactivarMascota(id, request.motivo())));
+    }
+
+    @PatchMapping("/{id}/reactivar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<MascotaResponseDTO> reactivar(@PathVariable Long id) {
+        return ResponseEntity.ok(MascotaResponseDTO.desde(mascotaService.reactivarMascota(id)));
     }
 
     @GetMapping

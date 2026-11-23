@@ -51,6 +51,9 @@ public class Mascota {
 
     private String imagenUrl;
 
+    @Column(length = 1000)
+    private String motivoDesactivacion;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoMascota estado;

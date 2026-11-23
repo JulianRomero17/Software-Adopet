@@ -1,1 +1,2 @@
 com\adopet\business\services\MascotaService.class
+com\adopet\presentation\dtos\DesactivarMascotaRequestDTO.class

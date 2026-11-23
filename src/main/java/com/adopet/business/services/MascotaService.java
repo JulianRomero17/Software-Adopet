@@ -46,11 +46,35 @@ public class MascotaService {
         return mascotaRepository.save(mascota);
     }
 
-    public Mascota desactivarMascota(Long id) {
+    public Mascota desactivarMascota(Long id, String motivo) {
+        if (motivo == null || motivo.isBlank()) {
+            throw new DatosMascotaInvalidosException("El motivo de desactivación es obligatorio");
+        }
+        if (motivo.length() > 1000) {
+            throw new DatosMascotaInvalidosException("El motivo no puede superar los 1000 caracteres");
+        }
+
         Mascota mascota = mascotaRepository.findById(id)
                 .orElseThrow(() -> new MascotaNoEncontradaException(id));
 
+        if (mascota.getEstado() == EstadoMascota.ADOPTADA) {
+            throw new DatosMascotaInvalidosException("No se puede desactivar una mascota adoptada");
+        }
+
         mascota.setEstado(EstadoMascota.NO_DISPONIBLE);
+        mascota.setMotivoDesactivacion(motivo.trim());
+        return mascotaRepository.save(mascota);
+    }
+
+    public Mascota reactivarMascota(Long id) {
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() -> new MascotaNoEncontradaException(id));
+
+        if (mascota.getEstado() == EstadoMascota.ADOPTADA) {
+            throw new DatosMascotaInvalidosException("No se puede reactivar una mascota adoptada");
+        }
+
+        mascota.setEstado(EstadoMascota.DISPONIBLE);
         return mascotaRepository.save(mascota);
     }
 

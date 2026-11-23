@@ -14,6 +14,8 @@ mvn spring-boot:run
 
 Hibernate crea o actualiza el esquema (`spring.jpa.hibernate.ddl-auto=update`). Luego Spring ejecuta `data.sql`, que carga de forma repetible las 13 mascotas del catálogo. La carga no crea ni modifica cuentas y no elimina registros existentes; los datos del antiguo catálogo solo se actualizan cuando tienen la URL de imagen de ejemplo `https://example.com/mascotas/...`.
 
+Las mascotas incluyen `motivo_desactivacion` para conservar el motivo registrado por administración. El estado puede volver a `DISPONIBLE` al reactivar una mascota; el motivo anterior se conserva como referencia.
+
 El esquema actual se deriva de las entidades JPA. `schema.sql` se conserva sin DDL legado para evitar crear tablas incompatibles.
 
 ## Funcionalidad respaldada por la base

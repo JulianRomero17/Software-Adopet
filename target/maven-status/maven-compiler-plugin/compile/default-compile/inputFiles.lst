@@ -48,6 +48,7 @@ C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\cont
 C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\controllers\UsuarioController.java
 C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\dtos\CrearSolicitudRequestDTO.java
 C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\dtos\DecidirSolicitudRequestDTO.java
+C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\dtos\DesactivarMascotaRequestDTO.java
 C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\dtos\EstadoUsuarioRequestDTO.java
 C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\dtos\LoginRequest.java
 C:\Users\julia\Downloads\Proyecto FIS\src\main\java\com\adopet\presentation\dtos\LoginResponse.java

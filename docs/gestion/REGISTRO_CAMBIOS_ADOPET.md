@@ -70,6 +70,28 @@ Usar esta plantilla cuando el problema impida continuar:
 
 ## Entradas cronológicas
 
+### [2026-11-22 13:56:20] - Responsable: Julián / Juan Esteban / Yuber (ejecución asistida; sin atribución individual)
+
+- Estado: [x] Suite automatizada del backend y build del frontend ejecutados y aprobados.
+- Fecha planificada: Por definir.
+- Fecha real: 2026-11-22 13:56:20 (hora de Colombia).
+- Dependencias: Docker Desktop activo para Testcontainers; imagen `postgres:18` disponible.
+- Área: backend / pruebas / frontend / documentación técnica.
+- Historia o requisito: QA de servicios, mascotas y recorrido de adopción.
+- Tarea o problema: Completar la ejecución de pruebas existentes; la integración tenía un error de claves foráneas al limpiar usuarios entre casos y requería Docker.
+- Qué se hizo: Se limpian primero seguimientos, solicitudes, favoritos y mascotas, y al final usuarios, respetando las referencias de PostgreSQL. Se cierra el contexto de Spring después de la clase para cerrar Hikari antes de detener el contenedor.
+- Endpoints o pantallas involucrados: registro, login, mascotas, solicitudes, decisión de adopción, historial, desactivar y reactivar mascota.
+- Archivos creados o modificados: `src/test/java/com/adopet/AdopetIntegrationTest.java`, `docs/gestion/PLAN_ADOPET.md`, `docs/gestion/REGISTRO_CAMBIOS_ADOPET.md`.
+- Configuración utilizada, sin secretos: Java 21.0.6, Maven, Docker Desktop 28.5.1 y PostgreSQL 18 en Testcontainers; build Vite desde `frontend/`.
+- Rama: `master` (actual); el árbol conserva cambios locales sin commit.
+- Commit/hash: HEAD base `c9acbe6`; cambios de esta ejecución sin commit.
+- Cómo se probó: `mvn test`; `npm.cmd run build` (PowerShell).
+- Resultado esperado: Suite completa sin fallos, errores ni casos omitidos; build de producción del frontend correcto.
+- Resultado obtenido: 34/34 pruebas Maven aprobadas (32 unitarias y 2 de integración); `npm.cmd run build` completado. El frontend no tiene script ni casos automatizados declarados.
+- Evidencia: `target/surefire-reports/` (siete suites, 34 pruebas en total) y salida del build Vite.
+- Riesgos, pendientes o reversión necesaria: Las pruebas de integración requieren Docker. Faltan pruebas específicas de roles, `SeguimientoService` y `NotificacionService`; rendimiento, carga, usabilidad, compatibilidad y recuperación siguen fuera de la suite automatizada.
+- Entrega a la siguiente persona: Mantener el test de integración con base aislada; agregar pruebas unitarias de servicios faltantes y pruebas negativas de autorización.
+
 <!-- Esta es la línea base de commits de JulianRomero17 que Git permite atribuir. El estado de la rama al crear cada commit no queda guardado en el objeto commit; master es la rama actual verificada y contiene estos commits. No se puede inferir más autoría o fecha que la indicada por git log. -->
 
 ### [2026-10-27 12:54:34] — Responsable: Julián / Juan Esteban / Yuber (avance asistido; sin atribución individual)
@@ -310,16 +332,16 @@ Esta sección resume el avance. El detalle y la evidencia deben permanecer en la
 - [ ] Interfaz para marcar Finalizada.
 - [ ] Seguimiento en panel admin y en "Mis solicitudes".
 - [ ] Notificaciones para "En revisión" y "Finalizada".
-- [ ] Pruebas de `MascotaService`, `SeguimientoService` y `NotificacionService`.
-- [!] `AdopetIntegrationTest` bloqueada por falta de entorno Docker válido para Testcontainers.
-- [ ] Pruebas de roles.
+- [x] Cinco pruebas de `MascotaService` pasan; [ ] agregar pruebas específicas de `SeguimientoService` y `NotificacionService`.
+- [x] `AdopetIntegrationTest`: dos casos aprobados con Docker/Testcontainers el 2026-11-22.
+- [ ] Pruebas negativas de autorización entre roles y aislamiento de solicitudes.
 - [ ] Prueba de tiempo de respuesta (RNF-02).
 - [ ] Verificación del proxy y pruebas contra la BD real.
 - [ ] Limpieza del repositorio para la entrega.
 - [ ] Demostración grabada de respaldo y envío final.
 - Último commit/hash: No verificable con git log.
 - Evidencia principal: reportes Surefire y pendientes del plan.
-- Pendiente principal: solicitudes y seguimiento en la interfaz, pruebas adicionales, integración con BD y desbloqueo de Testcontainers
+- Pendiente principal: solicitudes y seguimiento en la interfaz, pruebas negativas de roles, cobertura de servicios faltantes y verificaciones no funcionales.
 
 ---
 
@@ -361,9 +383,9 @@ Esta sección resume el avance. El detalle y la evidencia deben permanecer en la
 | Admin activa y desactiva usuarios | Juan Esteban | [ ] | Pendiente |
 | Adoptante no accede a rutas de administrador | Yuber | [ ] | Pendiente |
 | Consultas comunes responden en menos de 3 s | Yuber | [ ] | Pendiente |
-| Pruebas unitarias del backend | Julián (reportes existentes); Yuber (faltantes) | [~] | `mvn test` (2026-10-11): 19 aprobadas — `AuthServiceTest` 8, `SolicitudAdopcionServiceTest` 7, `UsuarioServiceTest` 4. Faltan `MascotaService`, `SeguimientoService` y `NotificacionService`. Reportes en `target/surefire-reports/` |
-| Prueba de integración (`AdopetIntegrationTest`) | Yuber | [!] | `mvn test` (2026-10-11) reporta 1 error de 20 pruebas: Testcontainers no encuentra un entorno Docker válido. Evidencia en `target/surefire-reports/TEST-com.adopet.AdopetIntegrationTest.xml` |
-| Build del frontend | Juan Esteban | [ ] | Pendiente |
+| Pruebas unitarias del backend | Equipo | [x] | Corrida completa `mvn test` (2026-11-22): 32 aprobadas; faltan pruebas específicas para `SeguimientoService` y `NotificacionService`. Reportes en `target/surefire-reports/` |
+| Prueba de integración (`AdopetIntegrationTest`) | Equipo | [x] | Corrida completa `mvn test` (2026-11-22): 2 aprobadas con Testcontainers/PostgreSQL 18; requiere Docker. |
+| Build del frontend | Equipo | [x] | `npm.cmd run build` (2026-11-22): Vite generó el build de producción. No hay script de pruebas frontend en `package.json`. |
 | Demostración grabada de respaldo | Yuber | [ ] | Pendiente |
 
 ---
@@ -401,3 +423,20 @@ Completar esta sección después del ensayo final.
 - [ ] Los tres informes tienen evidencia y commit/hash.
 - [ ] Existe video de respaldo de la demostración.
 - [ ] El plan y este registro reflejan el estado real de la entrega.
+
+## Ejecución final de QA transversal - 2026-11-22
+
+La siguiente ejecución actualiza las cantidades que aparecen en la matriz histórica anterior. El informe reproducible es `output/pdf/Informe_Definitivo_Pruebas_Adopet_IEEE.pdf`; procedimientos y capturas están en `qa/`.
+
+| Categoría | Estado | Resultado final y alcance |
+|---|---|---|
+| Funcionalidad | [x] | Flujo de registro, autenticación, catálogo, solicitud, rechazo duplicado, decisión, estado e historial; mascota desactivada/reactivada. |
+| Seguridad | [x] | BCrypt, token y restricciones por rol verificadas; `npm audit` reportó cero vulnerabilidades tras actualizar dependencias. Sin pentest ni análisis CVE Java. |
+| Rendimiento | [x] | RNF-02: p95 81 ms para 25 llamadas a detalle con MockMvc. Es medición interna y de un endpoint. |
+| Carga/estrés | [x] | 25 solicitudes sincronizadas, 25 respuestas HTTP 200 y 0 errores. Capacidad de saturación máxima no determinada. |
+| Integración | [x] | 4/4 pruebas con PostgreSQL 18 desechable mediante Testcontainers. Suite total: 36/36 (32 unitarias, 4 integración). |
+| Usabilidad | [x] | Menú móvil, ancla y CTA de catálogo al login pasaron en Chrome y Edge. Tareas guiadas automatizadas; no hubo participantes externos. |
+| Compatibilidad | [x] | Chrome 157 y Edge 158, viewports escritorio 1440×1000 y móvil 390×844; sin desbordamiento horizontal. |
+| Estabilidad/recuperación | [x] | `pg_dump`, restauración y reinicio de PostgreSQL 18 QA conservaron el dato centinela (1/1). No es prueba de failover productivo. |
+
+Build frontend: Vite 8.3.8 aprobado. Audit posterior: 0 vulnerabilidades. Evidencia cuantitativa de carga en Surefire: `QA_LOAD usuarios=25 solicitudes=25 p95_ms=81 errores=0`.

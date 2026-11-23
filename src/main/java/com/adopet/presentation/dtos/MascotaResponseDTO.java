@@ -17,6 +17,7 @@ public record MascotaResponseDTO(
         String vacunacion,
         String esterilizacion,
         String imagenUrl,
+        String motivoDesactivacion,
         EstadoMascota estado) {
 
     public static MascotaResponseDTO desde(Mascota mascota) {
@@ -34,6 +35,7 @@ public record MascotaResponseDTO(
                 mascota.getVacunacion(),
                 mascota.getEsterilizacion(),
                 mascota.getImagenUrl(),
+                mascota.getMotivoDesactivacion(),
                 mascota.getEstado());
     }
 }

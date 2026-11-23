@@ -100,9 +100,8 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 - [~] Backend con autenticación, mascotas, solicitudes, consulta de seguimiento y usuarios verificables en el código; faltan perfil, endpoint POST de seguimiento y cierre como Finalizada.
 - [~] Frontend funciona con modo provisional habilitado (`PROVISIONAL_MODE = true`); contiene cuenta demo, catálogo de ejemplo y almacenamiento local. No demuestra el flujo conectado a la API real.
 - [x] Existen `schema.sql`, `data.sql` y configuración PostgreSQL en `application.properties`; [ ] conexión de PostgreSQL y ejecución con datos reales pendientes de evidencia.
-- [x] `mvn test` (2026-10-11): 19 pruebas unitarias aprobadas (Auth 8, Solicitudes 7, Usuarios 4).
-- [!] `mvn test` termina con error en la prueba de integración (1 error de 20 pruebas totales): Testcontainers no encuentra un entorno Docker válido.
-- [!] `AdopetIntegrationTest`: bloqueada porque Testcontainers no encuentra un entorno Docker válido; requiere Docker disponible o un perfil de integración alternativo.
+- [x] `mvn test` (2026-11-22): 34 pruebas aprobadas, sin fallos ni errores (32 unitarias y 2 de integración con PostgreSQL 18 mediante Testcontainers).
+- [x] `AdopetIntegrationTest`: dos casos aprobados el 2026-11-22; limpieza de datos por orden de claves foráneas y cierre del contexto antes de detener PostgreSQL.
 - [!] Recuperación de contraseña: los endpoints están presentes, pero el envío real de correo conserva un `TODO`; SMTP y flujo completo pendientes.
 
 ---
@@ -229,12 +228,13 @@ Pagos, transporte, servicios veterinarios, integraciones gubernamentales, aplica
 - [ ] Ruta `/admin/usuarios` y enlace en el menú lateral (Juan Esteban)
 
 ### QA — Pruebas integrales y cierre (Yuber / Equipo completo)
-- [x] 20 pruebas unitarias aprobadas: `AuthService` (8), `SolicitudAdopcionService` (7), `UsuarioService` (4) y una de `MascotaService` (listado completo); ejecución actualizada 2026-10-27 sin prueba de integración/Docker.
-- [~] Pruebas de `MascotaService`: una prueba de listado completo añadida; faltan filtros, actualizar y desactivar.
+- [x] 32 pruebas unitarias aprobadas en la suite Maven (2026-11-22): `AdminBootstrap` (4), `AuthService` (8), `FavoritoService` (4), `MascotaService` (5), `SolicitudAdopcionService` (7) y `UsuarioService` (4).
+- [~] Pruebas de `MascotaService`: cinco pruebas aprobadas, incluidas búsqueda parcial de raza, desactivación, reactivación y motivo requerido; faltan casos adicionales de filtros y actualización.
 - [ ] Pruebas de `SeguimientoService` y `NotificacionService` (Yuber)
-- [!] `AdopetIntegrationTest` bloqueada: Testcontainers no encuentra Docker; habilitar Docker o acordar perfil alternativo (Yuber).
+- [x] `AdopetIntegrationTest`: 2 pruebas de integración aprobadas con PostgreSQL 18 en Testcontainers (2026-11-22; Docker requerido para reproducirlas).
 - [ ] Pruebas de roles: adoptante sin acceso a rutas de administrador y viceversa (Yuber)
-- [ ] Recorrido completo del flujo con ambos roles (Equipo completo)
+- [x] Recorrido principal de adopción con ambos roles: registro, autenticación, alta/listado de mascota, solicitud, duplicado, aprobación y consulta de historial (integración, 2026-11-22).
+- [x] Build de producción del frontend (`npm.cmd run build`, 2026-11-22); el proyecto todavía no declara pruebas automatizadas de frontend.
 - [ ] Pruebas de tiempo de respuesta menor a 3 s en consultas comunes, RNF-02 (Yuber)
 - [ ] Revisión en celular y navegadores modernos, RNF-09 (Juan Esteban)
 - [ ] RNF-01: realizar revisión de usabilidad con lista de criterios (claridad, consistencia, facilidad de navegación) y registrar hallazgos y correcciones (Juan Esteban / Equipo).
